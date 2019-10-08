@@ -12,7 +12,7 @@ import sys
 class all_mods:
 
 	# initialize the class
-	def __init__(self,data,pnames=[],func=False):
+	def __init__(self,data,pnames=[]):
 		if 'htimes' in data:
 			self.htimes = data['htimes']
 		if 'vtimes' in data:
@@ -314,7 +314,7 @@ class all_mods:
 		chi = self.get_chi(dat)       
 		npars = len(self.pnames)
 		ar = 0.0
-		nits,pits,burnin = 800,80,400
+		nits,pits,burnin = 8000,800,4000
 		ars,likelihoods = r_[[]],r_[[]]
 		opt = ones(npars)
 		stds = zeros(npars) + 0.01
