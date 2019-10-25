@@ -12,7 +12,7 @@ import sys
 class all_mods:
 
 	# initialize the class
-	def __init__(self,data,pnames=[]):
+	def __init__(self,data,pnames=[],nits=1000,pits=100,burnin=500):
 		if 'htimes' in data:
 			self.htimes = data['htimes']
 		if 'vtimes' in data:
@@ -28,12 +28,23 @@ class all_mods:
 			self.hss = mean(data['hss'])
 		if 'vss' in data:
 			self.vss = mean(data['vss'])
+		if 'btimes' in data:
+			self.btimes = data['btimes']
+		if 'bms' in data:
+                        self.bms = data['bms']
+                        self.twopred = False
+                else:
+                        self.twopred = True
+                if 'bss' in data:
+                        self.bss = mean(data['bss'])
 		self.pnames = pnames
 		self.params = self.param_guess(pnames)
+		self.nits = nits
+		self.pits = pits
+		self.burnin = int(nits/2.0)
 
 	# this is the function that is called externally to run the fitting procuedure
 	def do_fitting(self,ax1):
-		self.inits = self.get_inits()
 		self.get_best_fits()
 		self.set_adjusted_rsquared()
 		self.set_AIC()
@@ -42,13 +53,21 @@ class all_mods:
 	# get initial conditions
 	def get_inits(self):
 		if 'aff' in self.pnames:
-			N0 = amax(self.hms)-amin(self.hms)
+			N10 = amax(self.hms)-amin(self.hms)
 		else:
-			N0 = 1e+20
+			N10 = 1e+20
+		if 'bro' in self.pnames:
+			N20 = self.pdic['bro']
+		else:
+			N20 = 1e+20
 		if self.control == False:
-			inits = r_[[N0,self.hms[0],0,0,0,self.vms[0]]]
+			if self.twopred == True: 
+				inits = r_[[N10,N20,self.hms[0],0,0,0,self.vms[0]]]
+			else:
+				inits = r_[[N10,N20,self.hms[0],0,0,0,self.vms[0]]]
 		else:
-			inits = r_[[N0,self.hms[0],0,0,0,0]]
+			inits = r_[[N10,0,self.hms[0],0,0,0,0]]
+		self.N10,self.N20 = N10,N20
 		return inits
 
 	# function for generating initial parameter guesses
@@ -58,6 +77,10 @@ class all_mods:
 			self.pdic['mum'] = 1.0
 		else:
 			self.pdic['mum'] = 1e+20
+		if 'muv' in pnames:
+			self.pdic['muv'] = 1.0
+		else:
+			self.pdic['muv'] = 1e+20
 		if ('phi' in pnames) and (self.control==False):
 			self.pdic['phi'] = 0.1 / self.vms[0]
 		else:
@@ -122,6 +145,14 @@ class all_mods:
 			self.pdic['aff'] = 0.1/(amax(self.hms)-amin(self.hms))
 		else: 
 			self.pdic['aff'] = 1e+20
+		if 'vaf' in pnames:
+			self.pdic['vaf'] = 0.1/self.vms[0]
+		else: 
+			self.pdic['vaf'] = 1e+20
+		if 'bro' in pnames:
+			self.pdic['bro'] = (amax(self.vms) - amin(self.vms))/100.0
+		else: 
+			self.pdic['bro'] = 1e+20
 
 	# generate figures and add labels
 	def gen_figs(self,tag):
@@ -178,7 +209,7 @@ class all_mods:
 	# plot model fits
 	def plot_model(self,ax1):
 		hscale,vscale = self.get_scales()
-		dat = self.integrate(self.inits,forshow=True)
+		dat = self.integrate(forshow=True)
 		if self.control == False:
 			ax1[0].plot(self.mtimes,dat[0]/hscale)
 			ax1[1].plot(self.mtimes,dat[1]/vscale)
@@ -187,9 +218,9 @@ class all_mods:
 
 	# calculate scales so that the results are plotted with reasonable numbers
 	def get_scales(self):
-		hscale = 10**(sum(r_[[amax(self.hms)/(10**i) for i in arange(1,11)]] > 1)+1)
+		hscale = 10**(sum(r_[[amax(self.hms)/(10**i) for i in arange(1,11)]] > 1))
 		if self.control == False:
-			vscale = 10**(sum(r_[[amax(self.vms)/(10**i) for i in arange(1,11)]] > 1)+1)
+			vscale = 10**(sum(r_[[amax(self.vms)/(10**i) for i in arange(1,11)]] > 1))
 		else:
 			vscale = 0.0
 		return hscale,vscale
@@ -213,54 +244,47 @@ class all_mods:
 		gam =  self.pdic['gam']
 		mur =  self.pdic['mur']
 		aff =  self.pdic['aff']
-		N,S,Id,Ia,R,V = u[0],u[1],u[2],u[3],u[4],u[5]
+		vaf =  self.pdic['vaf']
+		bro =  self.pdic['bro']
+		muv =  self.pdic['muv']
+		N1,N2,S,Id,Ia,R,V = u[0],u[1],u[2],u[3],u[4],u[5],u[6]
 		model = self.get_model()
-		mu = self.calc_growth(N)
+		mu = self.calc_growth(N1)
+		mv = self.calc_growth_pred(N2)
+		dN1dt = self.get_nut_uptake(mu,S,'aff')
+		dN2dt = self.get_nut_uptake(mv,V,'vaf')
 		if (model=='F1'):
-			if ('aff' in self.pnames):
-				dNdt = -mu*S
-			else:
-				dNdt = 0.0
 			dSdt = mu*S
 			dIddt,dIadt,dRdt,dVdt = 0.0,0.0,0.0,0.0
 		elif (model=='F2'):
-			if ('aff' in self.pnames):
-				dNdt = -mu*S
-			else:
-				dNdt = 0.0
 			dSdt = mu*S - phi*S*V
 			dVdt = beta*phi*S*V - phi*S*V - deltv*V
 			dIddt,dIadt,dRdt = 0.0,0.0,0.0
 		elif (model=='F3'):
-			if ('aff' in self.pnames):
-				dNdt = -mu*S
-			else:
-				dNdt = 0.0
 			dSdt = mu*S - phi*S*V + rho*Id - psi*S*Id - delth*S
 			dIddt = phi*S*V - rho*Id + mui*Id - lambd*Id - delth*Id
-			dVdt = beta*lambd*Id - phi*S*V - deltv*V + alp*Id
+			dVdt = beta*lambd*Id - phi*S*V - deltv*V + alp*Id + mv*V
 			dIadt,dRdt = 0.0,0.0
 		elif (model=='F4'):
-			if ('aff' in self.pnames):
-                                dNdt = -mu*S
-			else:
-                                dNdt = 0.0
 			dSdt = mu*S - phi*S*V + rho*(Id+Ia) - psi*S*(Id+Ia) - delth*S
 			dIddt = phi*S*V - Id/tau - rho*Id + mui*Id - lambdl*Id - delth*Id
 			dIadt = Id/tau - lambd*Ia - eps*rho*Ia - delth*Ia
 			dRdt = 0.0
 			dVdt = beta*lambd*Ia + betal*lambdl*Id - phi*S*V - deltv*V + alp*(Id+Ia)
 		elif (model=='F5'):
-			if ('aff' in self.pnames):
-                                dNdt = -mu*S
-			else:
-                                dNdt = 0.0
 			dSdt = mu*S - phi*S*V + rho*(Id+Ia) - psi*S*(Id+Ia) - delth*S
 			dIddt = phi*S*V - Id/tau - (rho+gam)*Id + mui*Id - lambd*Id - delth*Id
 			dIadt = Id/tau - lambd*Ia - eps*(rho+gam)*Ia - delth*Ia
 			dRdt = gam*(Id + eps*Ia) + mur*R - delth*R
 			dVdt = beta*lambd*Ia + betal*lambd*Id - phi*S*V - deltv*V + alp*(Id+Ia)
-		return concatenate([r_[[dNdt]],r_[[dSdt]],r_[[dIddt]],r_[[dIadt]],r_[[dRdt]],r_[[dVdt]]])
+		return concatenate([r_[[dN1dt]],r_[[dN2dt]],r_[[dSdt]],r_[[dIddt]],r_[[dIadt]],r_[[dRdt]],r_[[dVdt]]])
+
+	def get_nut_uptake(self,mu,S,aff):
+		if (aff in self.pnames):
+			uptake = -mu*S
+		else:
+			uptake = 0.0
+		return uptake
 
 	# calculate susceptible host growth rate
 	def calc_growth(self,N):
@@ -269,11 +293,21 @@ class all_mods:
 		else:
 			mu = self.pdic['mum']
 		return mu
+
+	def calc_growth_pred(self,N):
+		if ('vaf' in self.pnames):
+			mu = self.pdic['muv']*N/(N+self.pdic['muv']/self.pdic['vaf'])
+		else:
+			if ('muv' in self.pnames):
+				mu = self.pdic['muv']
+			else:
+				mu = 0.0
+		return mu
 		
 	# special function to help determine which model structure to use in 'func'
 	def get_model(self):
 		F1,F2,F3,F4,F5 = False,False,False,False,False
-		if ('aff' in self.pnames):
+		if (('aff' in self.pnames) or ('mum' in self.pnames)):
 			F1 = True
 		if ('mum' in self.pnames) and ('phi' in self.pnames) and ('beta' in self.pnames):
 			F1 = False
@@ -310,11 +344,11 @@ class all_mods:
 
 	# fitting procedure
 	def get_best_fits(self):
-		dat = self.integrate(self.inits)
+		dat = self.integrate()
 		chi = self.get_chi(dat)       
 		npars = len(self.pnames)
 		ar = 0.0
-		nits,pits,burnin = 8000,800,4000
+		nits,pits,burnin = self.nits,self.pits,self.burnin
 		ars,likelihoods = r_[[]],r_[[]]
 		opt = ones(npars)
 		stds = zeros(npars) + 0.01
@@ -325,8 +359,7 @@ class all_mods:
 			self.params = params_old
 			self.params = self.params + opt*normal(0,stds,npars) # this is where we randomly change the parameter values
 			self.set_traits(self.params)
-			linits = self.get_inits() # have to reassign initial conditions because it's in a loop
-			dat = self.integrate(linits) # call the integration function
+			dat = self.integrate() # call the integration function
 			chinew = self.get_chi(dat)
 			likelihoods = append(likelihoods,chinew)
 			if exp(chi-chinew) > rand(): # KEY STEP
@@ -352,25 +385,29 @@ class all_mods:
 		print (' ')
 		#self.set_traits(log(pms))
 		self.pall = pall
-		self.pms = pms
-		self.pss = pss
+		self.pms,self.pss = {},{}
+		self.set_traits(log(pms))
+		for (mn,sd,param) in zip(pms,pss,self.pnames):
+			self.pms[param] = mn
+			self.pss[param] = sd
 		self.likelihoods = likelihoods[burnin:]
 		self.iterations = iterations[burnin:]
 
 	# function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)	
-	def integrate(self,inits,forshow=False,delt=900.0 / 86400.0):
+	def integrate(self,forshow=False,delt=900.0 / 86400.0):
 		days = amax(self.htimes)
 		times = arange(0,days,delt)
+		inits = self.get_inits()
 		self.mtimes = times
 		u = odeint(self.func,inits,times).T
 		if self.control == False:
 			if forshow==False:
 				hinds = r_[[where(abs(a-times)==min(abs(a-times)))[0][0] for a in self.htimes]]			
 				vinds = r_[[where(abs(a-times)==min(abs(a-times)))[0][0] for a in self.vtimes]] # same for viruses
-				hnt = sum(r_[[u[i][hinds] for i in arange(1,inits.shape[0]-1)]],0)  # host density
+				hnt = sum(r_[[u[i][hinds] for i in arange(2,inits.shape[0]-1)]],0)  # host density
 				vnt = u[-1][vinds] # virus density
 			else:
-				hnt = sum(r_[[u[i] for i in arange(1,inits.shape[0]-1)]],0)
+				hnt = sum(r_[[u[i] for i in arange(2,inits.shape[0]-1)]],0)
 				vnt = u[-1]
 			dat = [hnt,vnt]
 		else:
@@ -378,7 +415,7 @@ class all_mods:
 				hinds = r_[[where(abs(a-times)==min(abs(a-times)))[0][0] for a in self.htimes]] 
 				hnt = sum(r_[[u[i][hinds] for i in arange(1,inits.shape[0]-1)]],0)  # host density
 			else:
-				hnt = sum(r_[[u[i] for i in arange(1,inits.shape[0]-1)]],0)
+				hnt = sum(r_[[u[i] for i in arange(2,inits.shape[0]-1)]],0)
 			dat = [hnt]
 		return dat
 
@@ -410,17 +447,20 @@ class all_mods:
 		rsquared = self.get_rsquared()
 		p = len(self.pnames)
 		n = self.htimes.shape[0]
-		self.adj_rsquared = 1 - (n-1)/(p-1)*(1-rsquared)
+		if p > 1:
+			self.adj_rsquared = 1 - (n-1)/(p-1)*(1-rsquared)
+		else:
+			self.adj_rsquared = 0.01
 
 	# calculate the AIC
 	def set_AIC(self):
-		dat = self.integrate(self.inits,forshow=False)
+		dat = self.integrate(forshow=False)
 		K = len(self.pnames)
 		self.AIC = -2*log(exp(-self.get_chi(dat))) + 2*K
 
 	# calculate the rsquared
 	def get_rsquared(self):
-		dat = self.integrate(self.inits,forshow=False)
+		dat = self.integrate(forshow=False)
 		if self.control == False:
 			hnt,vnt = dat[0],dat[1]
 			ssres = sum((hnt - self.hms) ** 2) \
