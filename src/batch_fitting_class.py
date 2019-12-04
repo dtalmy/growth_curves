@@ -2,6 +2,7 @@ from scipy.integrate import *
 from numpy import *
 from pylab import *
 from scipy import *
+from scipy.optimize import least_squares
 import sys
 
 ############################################################
@@ -14,7 +15,7 @@ import sys
 class all_mods:
 
     # initialize the class
-    def __init__(self, data, pnames=[], nits=1000, pits=100, burnin=500):
+    def __init__(self, data, pnames=[], nits=1000, pits=100, burnin=False):
         if 'htimes' in data:
             self.htimes = data['htimes']
         if 'vtimes' in data:
@@ -22,37 +23,49 @@ class all_mods:
         if 'ntimes' in data:
             self.ntimes = data['ntimes']
         if 'hms' in data:
-            self.hms = data['hms']
+            self.hms = log(data['hms'])
+            if 'hss' in data:
+                self.hss = log(1.0+data['hss']**2.0/data['hms']**2.0)**0.5
+            else:
+                self.hss = r_[[0.02 for a in data['hms']]]
         if 'vms' in data:
-            self.vms = data['vms']
+            self.vms = log(data['vms'])
             self.control = False
+            if 'vss' in data:
+                self.vss = log(1.0+data['vss']**2.0/data['vms']**2.0)**0.5
+                print(self.vss)
+            else:
+                self.vss = r_[[0.02 for a in data['vms']]]
         else:
             self.control = True
         if 'nms' in data:
-            self.nms = data['nms']
+            self.nms = log(data['nms'])
             self.nutrients = True
+            if 'hss' in data:
+                self.hss = log(1.0+data['hss']**2.0/data['hms']**2.0)**0.5
+            else:
+                self.hss = r_[[0.02 for a in data['hms']]]
         else:
             self.nutrients = False
-        if 'hss' in data:
-            self.hss = mean(data['hss'])
-        if 'vss' in data:
-            self.vss = mean(data['vss'])
-        if 'nss' in data:
-            self.nss = data['nss']
-            if ma.is_masked(data['nss']):
-                if sum(data['nss'].mask) == data['nss'].shape[0]:
-                    self.nss = average(data['nms'])*0.1
         if 'btimes' in data:
             self.btimes = data['btimes']
         if 'bms' in data:
-            self.bms = data['bms']
+            self.bms = log(data['bms'])
         if 'bss' in data:
-            self.bss = mean(data['bss'])
+            self.bss = log(data['bss'])
         self.pnames = pnames
         self.params = self.param_guess(pnames)
         self.nits = nits
         self.pits = pits
-        self.burnin = int(nits/2.0)
+        if burnin == False:
+            self.burnin = int(nits/2.0)
+        else:
+            self.burnin = burnin
+
+    def var_eq(self,x,rmean,rsigmasquared):
+        stdev = ((exp(x[1]**2.0)-1)*exp(2*x[0]+x[1]**2.0)) - rsigmasquared
+        mean = exp(x[0]+0.5*x[1]**2.0) - rmean
+        return [mean,stdev]
 
     # this is the function that is called externally to run the fitting procuedure
     def do_fitting(self, ax1, col=False):
@@ -65,9 +78,9 @@ class all_mods:
     def get_inits(self):
         if 'aff' in self.pnames:
             if self.nutrients == True:
-                N10 = self.nms[0]
+                N10 = exp(self.nms[0])
             else:
-                N10 = amax(self.hms)-amin(self.hms)
+                N10 = amax(exp(self.hms))-amin(exp(self.hms))
         else:
             N10 = 1e+20
         if 'bro' in self.pnames:
@@ -75,9 +88,9 @@ class all_mods:
         else:
             N20 = 1e+20
         if self.control == False:
-            inits = r_[[N10, N20, self.hms[0], 0, 0, 0, self.vms[0]]]
+            inits = r_[[N10, N20, exp(self.hms[0]), 0, 0, 0, exp(self.vms[0])]]
         else:
-            inits = r_[[N10, 0, self.hms[0], 0, 0, 0, 0]]
+            inits = r_[[N10, 0, exp(self.hms[0]), 0, 0, 0, 0]]
         self.N10, self.N20 = N10, N20
         return inits
 
@@ -93,12 +106,12 @@ class all_mods:
         else:
             self.pdic['muv'] = 1e+20
         if ('phi' in pnames) and (self.control == False):
-            self.pdic['phi'] = 0.1 / self.vms[0]
+            self.pdic['phi'] = 0.1 / exp(self.vms[0])
         else:
             self.pdic['phi'] = 0.0
         if ('beta' in pnames) and (self.control == False):
-            self.pdic['beta'] = (amax(self.vms) - amin(self.vms)) / \
-                (amax(self.hms)-amin(self.hms))
+            self.pdic['beta'] = (amax(exp(self.vms)) - amin(exp(self.vms))) / \
+                (amax(exp(self.hms))-amin(exp(self.hms)))
         else:
             self.pdic['beta'] = 0.0
         if 'delth' in pnames:
@@ -138,8 +151,7 @@ class all_mods:
         else:
             self.pdic['tau'] = 1e-7
         if ('betal' in pnames) and (self.control == False):
-            self.pdic['betal'] = (
-                amax(self.vms) - amin(self.vms))/(amax(self.hms)-amin(self.hms))
+            self.pdic['betal'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/(amax(exp(self.hms))-amin(exp(self.hms)))
         else:
             self.pdic['betal'] = 0.0
         if 'eps' in pnames:
@@ -156,17 +168,17 @@ class all_mods:
             self.pdic['mur'] = 0.0
         if 'aff' in pnames:
             if self.nutrients == False:
-                self.pdic['aff'] = 0.1/(amax(self.hms)-amin(self.hms))
+                self.pdic['aff'] = 0.1/(amax(exp(self.hms))-amin(exp(self.hms)))
             else:
-                self.pdic['aff'] = 0.1/self.nms[0]
+                self.pdic['aff'] = 0.1/exp(self.nms[0])
         else:
             self.pdic['aff'] = 1e+20
         if 'vaf' in pnames:
-            self.pdic['vaf'] = 0.1/self.vms[0]
+            self.pdic['vaf'] = 0.1/exp(self.vms[0])
         else:
             self.pdic['vaf'] = 1e+20
         if 'bro' in pnames:
-            self.pdic['bro'] = (amax(self.vms) - amin(self.vms))/100.0
+            self.pdic['bro'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/100.0
         else:
             self.pdic['bro'] = 1e+20
 
@@ -230,34 +242,34 @@ class all_mods:
         hscale, vscale = self.get_scales()
         if col == False:
             if self.control == False:
-                ax[0].errorbar(self.htimes, self.hms/hscale,
-                               yerr=self.hss/hscale, fmt='o')
-                ax[1].errorbar(self.vtimes, self.vms/vscale,
-                               yerr=self.vss/vscale, fmt='o')
+                ax[0].errorbar(self.htimes, exp(self.hms)/hscale,
+                               yerr=exp(self.hss)/hscale, fmt='o')
+                ax[1].errorbar(self.vtimes, exp(self.vms)/vscale,
+                               yerr=exp(self.vss)/vscale, fmt='o')
             else:
                 if self.nutrients == False:
-                    ax.errorbar(self.htimes, self.hms/hscale,
-                                yerr=self.hss/hscale, fmt='o')
+                    ax.errorbar(self.htimes, exp(self.hms)/hscale,
+                                yerr=exp(self.hss)/hscale, fmt='o')
                 else:
-                    ax[0].errorbar(self.ntimes, self.nms,
-                                   yerr=self.nms, fmt='o')
-                    ax[1].errorbar(self.htimes, self.hms/hscale,
-                                   yerr=self.hss/hscale, fmt='o')
+                    ax[0].errorbar(self.ntimes, exp(self.nms),
+                                   yerr=exp(self.nms), fmt='o')
+                    ax[1].errorbar(self.htimes, exp(self.hms)/hscale,
+                                   yerr=exp(self.hss)/hscale, fmt='o')
         else:
             if self.control == False:
-                ax[0].errorbar(self.htimes, self.hms/hscale,
-                               yerr=self.hss/hscale, fmt='o', c=col)
-                ax[1].errorbar(self.vtimes, self.vms/vscale,
-                               yerr=self.vss/vscale, fmt='o', c=col)
+                ax[0].errorbar(self.htimes, exp(self.hms)/hscale,
+                               yerr=exp(self.hss)/hscale, fmt='o', c=col)
+                ax[1].errorbar(self.vtimes, exp(self.vms)/vscale,
+                               yerr=exp(self.vss)/vscale, fmt='o', c=col)
             else:
                 if self.nutrients == False:
-                    ax.errorbar(self.htimes, self.hms/hscale,
-                                yerr=self.hss/hscale, fmt='o', c=col)
+                    ax.errorbar(self.htimes, exp(self.hms)/hscale,
+                                yerr=exp(self.hss)/hscale, fmt='o', c=col)
                 else:
-                    ax[0].errorbar(self.ntimes, self.nms,
-                                   yerr=self.nms, fmt='o', c=col)
-                    ax[1].errorbar(self.htimes, self.hms/hscale,
-                                   yerr=self.hss/hscale, fmt='o', c=col)
+                    ax[0].errorbar(self.ntimes, exp(self.nms),
+                                   yerr=exp(self.nms), fmt='o', c=col)
+                    ax[1].errorbar(self.htimes, exp(self.hms)/hscale,
+                                   yerr=exp(self.hss)/hscale, fmt='o', c=col)
 
     # plot model fits
     def plot_model(self, ax1, col=False):
@@ -265,31 +277,31 @@ class all_mods:
         dat = self.integrate(forshow=True)
         if col == False:
             if self.control == False:
-                ax1[0].plot(self.mtimes, dat[0]/hscale)
-                ax1[1].plot(self.mtimes, dat[1]/vscale)
+                ax1[0].plot(self.mtimes, exp(dat[0])/hscale)
+                ax1[1].plot(self.mtimes, exp(dat[1])/vscale)
             else:
                 if self.nutrients == False:
-                    ax1.plot(self.mtimes, dat[0]/hscale)
+                    ax1.plot(self.mtimes, exp(dat[0])/hscale)
                 else:
-                    ax1[0].plot(self.mtimes, dat[0])
-                    ax1[1].plot(self.mtimes, dat[1]/hscale)
+                    ax1[0].plot(self.mtimes, exp(dat[0]))
+                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale)
         else:
             if self.control == False:
-                ax1[0].plot(self.mtimes, dat[0]/hscale, c=col)
-                ax1[1].plot(self.mtimes, dat[1]/vscale, c=col)
+                ax1[0].plot(self.mtimes, exp(dat[0])/hscale, c=col)
+                ax1[1].plot(self.mtimes, exp(dat[1])/vscale, c=col)
             else:
                 if self.nutrients == False:
-                    ax1.plot(self.mtimes, dat[0]/hscale, c=col)
+                    ax1.plot(self.mtimes, exp(dat[0])/hscale, c=col)
                 else:
-                    ax1[0].plot(self.mtimes, dat[0], c=col)
-                    ax1[1].plot(self.mtimes, dat[1]/hscale, c=col)
+                    ax1[0].plot(self.mtimes, exp(dat[0]), c=col)
+                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale, c=col)
 
     # calculate scales so that the results are plotted with reasonable numbers
     def get_scales(self):
-        hscale = 10**(sum(r_[[amax(self.hms)/(10**i)
+        hscale = 10**(sum(r_[[amax(exp(self.hms))/(10**i)
                               for i in arange(1, 11)]] > 1))
         if self.control == False:
-            vscale = 10**(sum(r_[[amax(self.vms)/(10**i)
+            vscale = 10**(sum(r_[[amax(exp(self.vms))/(10**i)
                                   for i in arange(1, 11)]] > 1))
         else:
             vscale = 0.0
@@ -355,8 +367,8 @@ class all_mods:
     def get_nut_uptake(self, mu, S, aff):
         if (aff in self.pnames):
             if self.nutrients == True:
-                Qn = (amax(self.nms)-amin(self.nms)) / \
-                    (amax(self.hms)-amin(self.hms))
+                Qn = (amax(exp(self.nms))-amin(exp(self.nms))) / \
+                    (amax(exp(self.hms))-amin(exp(self.hms)))
                 if isnan(Qn):
                     Qn = 2e-7
             else:
@@ -526,7 +538,7 @@ class all_mods:
                     hnt = sum(r_[[u[i]
                                   for i in arange(2, inits.shape[0]-1)]], 0)
                     dat = [nnt, hnt]
-        return dat
+        return log(dat)
 
     # helper function to conveniently access traits
     def get_traits(self):
