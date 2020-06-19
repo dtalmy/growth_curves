@@ -4,18 +4,19 @@ from pylab import *
 from scipy import *
 from scipy.optimize import least_squares
 import sys
+import matplotlib as plt
 
 ############################################################
 # class for fitting ODE models to host-virus growth curves
 ############################################################
 
 # model class
-
-
 class all_mods:
 
     # initialize the class
-    def __init__(self, data, pnames=[], nits=1000, pits=100, burnin=False):
+
+    def __init__(self, data, pnames=[], modellabel='M2', nits=5000, pits=1000, burnin=2500): ###Post log trans of data, plot the mean/variance (on y) (timepoint on x) to see if the plot ends up as a straight horz line
+        ### Before you even do the above, check to see if the worst ones are the ones where there is a stand dev, or we are making it up
         if 'htimes' in data:
             self.htimes = data['htimes']
         if 'vtimes' in data:
@@ -25,17 +26,16 @@ class all_mods:
         if 'hms' in data:
             self.hms = log(data['hms'])
             if 'hss' in data:
-                self.hss = log(1.0+data['hss']**2.0/data['hms']**2.0)**0.5
+                self.hss = log(1.0+data['hss'].astype(float)**2.0/data['hms']**2.0)**0.5
             else:
-                self.hss = r_[[0.02 for a in data['hms']]]
+                self.hss = r_[[0.5 for a in data['hms']]]
         if 'vms' in data:
             self.vms = log(data['vms'])
             self.control = False
             if 'vss' in data:
-                self.vss = log(1.0+data['vss']**2.0/data['vms']**2.0)**0.5
-                print(self.vss)
+                self.vss = log(1.0+data['vss'].astype(float)**2.0/data['vms']**2.0)**0.5
             else:
-                self.vss = r_[[0.02 for a in data['vms']]]
+                self.vss = r_[[0.5 for a in data['vms']]]
         else:
             self.control = True
         if 'nms' in data:
@@ -57,6 +57,7 @@ class all_mods:
         self.params = self.param_guess(pnames)
         self.nits = nits
         self.pits = pits
+        self.modellabel=modellabel
         if burnin == False:
             self.burnin = int(nits/2.0)
         else:
@@ -184,16 +185,25 @@ class all_mods:
 
     # generate figures and add labels
     def gen_figs(self, tag):
+        plt.rcParams['axes.labelweight'] = "bold"
+        plt.rcParams['font.weight'] = "bold"
+        plt.rcParams['lines.linewidth']= 2
+        plt.rcParams['xtick.major.size'] = 5
+        plt.rcParams['ytick.major.size'] = 5
+        plt.rcParams['xtick.direction'] = "in"
+        plt.rcParams['ytick.direction'] = "in"
         f1, ax1 = subplots(1, 2, figsize=[9.5, 4.0])
         f1.subplots_adjust(bottom=0.13, wspace=0.3, hspace=0.3)
         f2, ax2 = subplots(figsize=[8, 5])
         f3, ax3 = subplots(1, 2, figsize=[9.5, 4.0])
+        f3.subplots_adjust(wspace=0.3, bottom = 0.15)
         f4, ax4 = subplots(2, 2, figsize=[10, 10])
+        f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
         ax4 = ax4.flatten()
-        f1.suptitle('Dynamics '+tag)
-        f2.suptitle('Sum of square errors '+tag)
-        f3.suptitle('Fitting assessment '+tag)
-        f4.suptitle('Dynamics '+tag)
+        f1.suptitle('Dynamics '+tag, fontweight = "bold")
+        f2.suptitle('Sum of square errors '+tag, fontweight = "bold")
+        f3.suptitle('Fitting assessment '+tag, fontweight = "bold")
+        f4.suptitle('Dynamics '+tag, fontweight = "bold")
         fs = 14
         self.double_labels(ax1)
         self.plot_data(ax1)
@@ -218,7 +228,7 @@ class all_mods:
             ax1[0].set_ylabel(
                 r'Cells ($\times$10$^%i$ml$^{-1}$)' % int(log10(hscale)), fontsize=fs)
             ax1[1].set_ylabel(
-                r'Cells ($\times$10$^{%i}$ ml$^{-1}$)' % int(log10(vscale)), fontsize=fs)
+                r'Viruses ($\times$10$^{%i}$ ml$^{-1}$)' % int(log10(vscale)), fontsize=fs)
             ax1[0].set_xlabel('Time (days)', fontsize=fs)
             ax1[1].set_xlabel('Time (days)', fontsize=fs)
             ax1[0].text(0.07, 0.9, 'a', ha='center', va='center',
@@ -231,8 +241,9 @@ class all_mods:
                     r'Cells ($\times$10$^%i$ml$^{-1}$)' % int(log10(hscale)), fontsize=fs)
                 ax1.set_xlabel('Time', fontsize=fs)
             else:
+                get_printoptions
                 ax1[1].set_ylabel(
-                    r'Cells ($\times$10$^%i$ml$^{-1}$)' % int(log10(hscale)), fontsize=fs)
+                    r'Viruses ($\times$10$^%i$ml$^{-1}$)' % int(log10(hscale)), fontsize=fs)
                 ax1[1].set_xlabel('Time', fontsize=fs)
                 ax1[0].set_ylabel(r'Substrate', fontsize=fs)
                 ax1[0].set_xlabel('Time', fontsize=fs)
@@ -277,7 +288,7 @@ class all_mods:
         dat = self.integrate(forshow=True)
         if col == False:
             if self.control == False:
-                ax1[0].plot(self.mtimes, exp(dat[0])/hscale)
+                ax1[0].plot(self.mtimes, exp(dat[0])/hscale,label=self.modellabel)
                 ax1[1].plot(self.mtimes, exp(dat[1])/vscale)
             else:
                 if self.nutrients == False:
@@ -348,14 +359,15 @@ class all_mods:
             dVdt = beta*lambd*Id - phi*S*V - deltv*V + alp*Id + mv*V
             dIadt, dRdt = 0.0, 0.0
         elif (model == 'F4'):
-            dSdt = mu*S - phi*S*V + rho*(Id+Ia) - psi*S*(Id+Ia) - delth*S
+            dSdt = mu*S - phi*S*V + rho*(Id+eps*Ia) - psi*S*(Id+Ia) - delth*S
+            #sys.exit()
             dIddt = phi*S*V - Id/tau - rho*Id + mui*Id - lambdl*Id - delth*Id
             dIadt = Id/tau - lambd*Ia - eps*rho*Ia - delth*Ia
             dRdt = 0.0
             dVdt = beta*lambd*Ia + betal*lambdl * \
                 Id - phi*S*V - deltv*V + alp*(Id+Ia)
         elif (model == 'F5'):
-            dSdt = mu*S - phi*S*V + rho*(Id+Ia) - psi*S*(Id+Ia) - delth*S
+            dSdt = mu*S - phi*S*V + rho*(Id+eps*Ia) - psi*S*(Id+Ia) - delth*S
             dIddt = phi*S*V - Id/tau - \
                 (rho+gam)*Id + mui*Id - lambd*Id - delth*Id
             dIadt = Id/tau - lambd*Ia - eps*(rho+gam)*Ia - delth*Ia
@@ -437,7 +449,9 @@ class all_mods:
             return 'F5'
 
     # fitting procedure
-    def get_best_fits(self):
+    def get_best_fits(self): ###Either add in the plot models within this, or make your own plots to see each model fits a d the correspknding chi (do show() and then close(): a new figure each time)
+        ### F,n = subplots(1,2), show(), close() ###do this on dataset where the high densities of the cells are the most wonky: Cant get the high values
+        ### Could be issue with log tranformation of the data, or the means, or the tranformation of the error, or all of the above
         dat = self.integrate()
         chi = self.get_chi(dat)
         npars = len(self.pnames)
@@ -445,17 +459,18 @@ class all_mods:
         nits, pits, burnin = self.nits, self.pits, self.burnin
         ars, likelihoods = r_[[]], r_[[]]
         opt = ones(npars)
-        stds = zeros(npars) + 0.01
+        stds = zeros(npars) + 0.05
         pall = [r_[[]] for i in range(npars)]
         iterations = arange(1, nits, 1)
-        for it in iterations:
+        print('iteration; ' 'error; ' 'acceptance ratio')
+        for it in iterations: ###Most of the stuff is done in this loop. Try to map out / visualize the methods and step by step of this
             params_old = self.get_traits()
             self.params = params_old
             # this is where we randomly change the parameter values
             self.params = self.params + opt*normal(0, stds, npars)
             self.set_traits(self.params)
             dat = self.integrate()  # call the integration function
-            chinew = self.get_chi(dat)
+            chinew = self.get_chi(dat) ### get chi is critical, it determines the error that the rest of this is based on
             likelihoods = append(likelihoods, chinew)
             if exp(chi-chinew) > rand():  # KEY STEP
                 chi = chinew
@@ -465,11 +480,12 @@ class all_mods:
             else:
                 self.set_traits(params_old)
             if (it % pits == 0):
-                print(it, chi, ar/pits)
+                print(it,';', round(chi,2),';', ar/pits)
                 ars = append(ars, ar/pits)
                 ar = 0.0
         pms = r_[[mean(exp(p)) for p in pall]]
         pss = r_[[std(exp(p)) for p in pall]]
+        print(' ')
         print('Optimal parameters')
         for (p, l) in zip(pms, self.pnames):
             print(l, '=', p)
@@ -490,7 +506,10 @@ class all_mods:
 
     # function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)
     def integrate(self, forshow=False, delt=900.0 / 86400.0):
-        days = amax(self.htimes)
+        if (self.control == False):
+            days = max(amax(self.htimes),amax(self.vtimes))
+        else:
+            days = amax(self.htimes)
         times = arange(0, days, delt)
         inits = self.get_inits()
         self.mtimes = times
@@ -538,7 +557,8 @@ class all_mods:
                     hnt = sum(r_[[u[i]
                                   for i in arange(2, inits.shape[0]-1)]], 0)
                     dat = [nnt, hnt]
-        return log(dat)
+        dat = [ma.log(ma.masked_where(d<0,d)) for d in dat ] ###Check this transformation for making the errors (std dev) uniform; probs not just a simple log transformation. You need something else. 
+        return dat
 
     # helper function to conveniently access traits
     def get_traits(self):
@@ -605,3 +625,4 @@ class all_mods:
                 ssres = sum((hnt - self.hms) ** 2)
                 sstot = self.hms.shape[0]*var(self.hms)
         return 1 - ssres / sstot
+
