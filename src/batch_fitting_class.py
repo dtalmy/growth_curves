@@ -15,7 +15,7 @@ class all_mods:
 
     # initialize the class
 
-    def __init__(self, data, pnames=[], modellabel='M2', nits=5000, pits=1000, burnin=2500): ###Post log trans of data, plot the mean/variance (on y) (timepoint on x) to see if the plot ends up as a straight horz line
+    def __init__(self, data, features, modellabel='default model', nits=5000, pits=1000, burnin=2500): ###Post log trans of data, plot the mean/variance (on y) (timepoint on x) to see if the plot ends up as a straight horz line
         ### Before you even do the above, check to see if the worst ones are the ones where there is a stand dev, or we are making it up
         if 'htimes' in data:
             self.htimes = data['htimes']
@@ -40,21 +40,23 @@ class all_mods:
             self.control = True
         if 'nms' in data:
             self.nms = log(data['nms'])
-            self.nutrients = True
+            self.ndat = True
             if 'hss' in data:
                 self.hss = log(1.0+data['hss']**2.0/data['hms']**2.0)**0.5
             else:
                 self.hss = r_[[0.02 for a in data['hms']]]
         else:
-            self.nutrients = False
-        if 'btimes' in data:
-            self.btimes = data['btimes']
-        if 'bms' in data:
-            self.bms = log(data['bms'])
-        if 'bss' in data:
-            self.bss = log(data['bss'])
-        self.pnames = pnames
-        self.params = self.param_guess(pnames)
+            self.ndat = False
+        self.nstates = features[0]
+        self.chronic = features[1] 
+        self.suicide = features[2]
+        self.muinfec = features[3]
+        self.recover = features[4]
+        self.pgrowth = features[5]
+        self.hnutlim = features[6]
+        self.pnutlim = features[7]
+        self.hindex = self.hnutlim + self.pnutlim
+        self.param_guess()
         self.nits = nits
         self.pits = pits
         self.modellabel=modellabel
@@ -62,6 +64,7 @@ class all_mods:
             self.burnin = int(nits/2.0)
         else:
             self.burnin = burnin
+        params = self.get_traits()
 
     def var_eq(self,x,rmean,rsigmasquared):
         stdev = ((exp(x[1]**2.0)-1)*exp(2*x[0]+x[1]**2.0)) - rsigmasquared
@@ -75,135 +78,94 @@ class all_mods:
         self.set_AIC()
         self.plot_model(ax1, col)
 
+    def plot_faucet(self):
+        n = len(self.pnames)
+        fc,axc = subplots(n,n,figsize=[n*2,n*2])
+        for i in range(n):
+            for j in range(n):
+                if j>i:
+                    axc[i,j].remove()
+                else:
+                    axc[i,j].scatter(exp(self.pall[i,:]),exp(self.pall[j,:]),s=5)
+                    #axc[i,j].semilogx()
+                    #axc[i,j].semilogy()
+                    axc[i,j].set_xlabel(self.pnames[i])
+                    axc[i,j].set_ylabel(self.pnames[j])
+                    #axc[i,j].loglog()
+        fc.subplots_adjust(bottom=0.05,left=0.1,top=0.95,right=0.95,hspace=1,wspace=1)
+        show()
+
     # get initial conditions
     def get_inits(self):
-        if 'aff' in self.pnames:
-            if self.nutrients == True:
-                N10 = exp(self.nms[0])
+        if self.hnutlim == True:
+            if self.ndat == True:
+                self.N10 = exp(self.nms[0])
             else:
-                N10 = amax(exp(self.hms))-amin(exp(self.hms))
-        else:
-            N10 = 1e+20
-        if 'bro' in self.pnames:
-            N20 = self.pdic['bro']
-        else:
-            N20 = 1e+20
+                self.N10 = amax(exp(self.hms))-amin(exp(self.hms))
+        if self.pnutlim == True:
+            self.N20 = self.pdic['vni']
         if self.control == False:
-            inits = r_[[N10, N20, exp(self.hms[0]), 0, 0, 0, exp(self.vms[0])]]
+            if (self.hnutlim==False) and (self.pnutlim==False):
+                inits = concatenate((r_[[exp(self.hms[0])]],zeros(self.nstates), r_[[exp(self.vms[0])]]))
+            elif (self.hnutlim) and (self.pnutlim == False):   
+                inits = concatenate((r_[[self.N10, exp(self.hms[0])]],\
+                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
+            elif (self.hnutlim == False) and (self.pnutlim):
+                inits = concatenate((r_[[self.N20, exp(self.hms[0])]],\
+                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
+            elif (self.hnutlim) and (self.pnutlim):   
+                inits = concatenate((r_[[self.N10, self.N20, exp(self.hms[0])]],\
+                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
         else:
-            inits = r_[[N10, 0, exp(self.hms[0]), 0, 0, 0, 0]]
-        self.N10, self.N20 = N10, N20
+            if self.hnutlim == True:
+                inits = concatenate((r_[[self.N10, exp(self.hms[0])]]))
+            else:
+                inits = concatenate((r_[[exp(self.hms[0])]]))
         return inits
 
+    def set_params(self,name,nparams,val):
+        if nparams > 1:
+            for i in arange(1,nparams+1):
+                self.pdic[name+'_'+str(i)] = val
+        elif nparams == 1:
+            self.pdic[name] = val
+
     # function for generating initial parameter guesses
-    def param_guess(self, pnames):
+    def param_guess(self):
         self.pdic = {}
-        if 'mum' in pnames:
-            self.pdic['mum'] = 1.0
-        else:
-            self.pdic['mum'] = 1e+20
-        if 'muv' in pnames:
-            self.pdic['muv'] = 1.0
-        else:
-            self.pdic['muv'] = 1e+20
-        if ('phi' in pnames) and (self.control == False):
-            self.pdic['phi'] = 0.1 / exp(self.vms[0])
-        else:
-            self.pdic['phi'] = 0.0
-        if ('beta' in pnames) and (self.control == False):
-            self.pdic['beta'] = (amax(exp(self.vms)) - amin(exp(self.vms))) / \
-                (amax(exp(self.hms))-amin(exp(self.hms)))
-        else:
-            self.pdic['beta'] = 0.0
-        if 'delth' in pnames:
-            self.pdic['delth'] = 0.1
-        else:
-            self.pdic['delth'] = 0.0
-        if 'deltv' in pnames:
-            self.pdic['deltv'] = 0.1
-        else:
-            self.pdic['deltv'] = 0.0
-        if 'lambd' in pnames:
-            self.pdic['lambd'] = 0.1
-        else:
-            self.pdic['lambd'] = 1e+20
-        if 'lambdl' in pnames:
-            self.pdic['lambdl'] = 0.1
-        else:
-            self.pdic['lambdl'] = 0.0
-        if 'rho' in pnames:
-            self.pdic['rho'] = 0.1
-        else:
-            self.pdic['rho'] = 0.0
-        if 'mui' in pnames:
-            self.pdic['mui'] = 0.1
-        else:
-            self.pdic['mui'] = 0.0
-        if 'psi' in pnames:
-            self.pdic['psi'] = 0.1
-        else:
-            self.pdic['psi'] = 0.0
-        if 'alp' in pnames:
-            self.pdic['alp'] = 1.0
-        else:
-            self.pdic['alp'] = 0.0
-        if 'tau' in pnames:
-            self.pdic['tau'] = 1.0
-        else:
-            self.pdic['tau'] = 1e-7
-        if ('betal' in pnames) and (self.control == False):
-            self.pdic['betal'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/(amax(exp(self.hms))-amin(exp(self.hms)))
-        else:
-            self.pdic['betal'] = 0.0
-        if 'eps' in pnames:
-            self.pdic['eps'] = 1.0
-        else:
-            self.pdic['eps'] = 0.0
-        if 'gam' in pnames:
-            self.pdic['gam'] = 0.1
-        else:
-            self.pdic['gam'] = 0.0
-        if 'mur' in pnames:
-            self.pdic['mur'] = 0.1
-        else:
-            self.pdic['mur'] = 0.0
-        if 'aff' in pnames:
-            if self.nutrients == False:
+        self.set_params('mumh',1,0.1)
+        if self.hnutlim == True:
+            if self.ndat == False:
                 self.pdic['aff'] = 0.1/(amax(exp(self.hms))-amin(exp(self.hms)))
             else:
                 self.pdic['aff'] = 0.1/exp(self.nms[0])
-        else:
-            self.pdic['aff'] = 1e+20
-        if 'vaf' in pnames:
-            self.pdic['vaf'] = 0.1/exp(self.vms[0])
-        else:
-            self.pdic['vaf'] = 1e+20
-        if 'bro' in pnames:
-            self.pdic['bro'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/100.0
-        else:
-            self.pdic['bro'] = 1e+20
+        if self.control == False:
+            self.set_params('lambda',self.nstates,0.1)
+            self.set_params('delta',1,0.1)
+            beta = (amax(exp(self.vms)) - amin(exp(self.vms))) / \
+                (amax(exp(self.hms))-amin(exp(self.hms)))
+            self.set_params('beta',max(1,self.nstates),beta)
+            self.set_params('phi',1,0.1 / exp(self.vms[0]))
+            self.set_params('tau',self.nstates-1,1.0 )
+            self.set_params('mui',self.nstates,0.1*self.muinfec)
+            self.set_params('rho',self.nstates,0.1*self.recover)
+            self.set_params('psi',self.nstates,0.1*self.suicide)
+            self.set_params('mumv',1,0.1*self.pgrowth)
+            self.set_params('alpha',self.nstates,10*self.chronic)
+            if self.pnutlim == True:
+                self.pdic['vaf'] = 0.1/exp(self.vms[0])
+                self.pdic['vni'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/100.0
 
     # generate figures and add labels
     def gen_figs(self, tag):
-        plt.rcParams['axes.labelweight'] = "bold"
-        plt.rcParams['font.weight'] = "bold"
-        plt.rcParams['lines.linewidth']= 2
-        plt.rcParams['xtick.major.size'] = 5
-        plt.rcParams['ytick.major.size'] = 5
-        plt.rcParams['xtick.direction'] = "in"
-        plt.rcParams['ytick.direction'] = "in"
         f1, ax1 = subplots(1, 2, figsize=[9.5, 4.0])
         f1.subplots_adjust(bottom=0.13, wspace=0.3, hspace=0.3)
         f2, ax2 = subplots(figsize=[8, 5])
         f3, ax3 = subplots(1, 2, figsize=[9.5, 4.0])
         f3.subplots_adjust(wspace=0.3, bottom = 0.15)
-        f4, ax4 = subplots(2, 2, figsize=[10, 10])
-        f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
-        ax4 = ax4.flatten()
         f1.suptitle('Dynamics '+tag, fontweight = "bold")
         f2.suptitle('Sum of square errors '+tag, fontweight = "bold")
         f3.suptitle('Fitting assessment '+tag, fontweight = "bold")
-        f4.suptitle('Dynamics '+tag, fontweight = "bold")
         fs = 14
         self.double_labels(ax1)
         self.plot_data(ax1)
@@ -215,9 +177,8 @@ class all_mods:
         ax3[1].set_ylabel(r'AIC', fontsize=fs)
         ax3[0].set_ylim([0, 1])
         ylabs = ['mu', 'phi', 'beta', 'lambda']
-        for (ax, lab) in zip(ax4, ylabs):
-            ax.set_ylabel(lab, fontsize=fs)
-        figs, axes = [f1, f2, f3, f4], [ax1, ax2, ax3, ax4]
+        figs, axes = [f1, f2, f3], [ax1, ax2, ax3]
+        self.ax1 = ax1
         return figs, axes
 
     # helper function for plotting labels. Allows flexibilty depending on whether it's controls or infected cultures
@@ -236,7 +197,7 @@ class all_mods:
             ax1[1].text(0.07, 0.9, 'b', ha='center', va='center',
                         color='k', transform=ax1[1].transAxes)
         else:
-            if self.nutrients == False:
+            if self.ndat == False:
                 ax1.set_ylabel(
                     r'Cells ($\times$10$^%i$ml$^{-1}$)' % int(log10(hscale)), fontsize=fs)
                 ax1.set_xlabel('Time', fontsize=fs)
@@ -249,7 +210,7 @@ class all_mods:
                 ax1[0].set_xlabel('Time', fontsize=fs)
 
     # plot data
-    def plot_data(self, ax, col=False):
+    def plot_data(self, ax, col='k'):
         hscale, vscale = self.get_scales()
         if col == False:
             if self.control == False:
@@ -258,7 +219,7 @@ class all_mods:
                 ax[1].errorbar(self.vtimes, exp(self.vms)/vscale,
                                yerr=exp(self.vss)/vscale, fmt='o')
             else:
-                if self.nutrients == False:
+                if self.ndat == False:
                     ax.errorbar(self.htimes, exp(self.hms)/hscale,
                                 yerr=exp(self.hss)/hscale, fmt='o')
                 else:
@@ -273,7 +234,7 @@ class all_mods:
                 ax[1].errorbar(self.vtimes, exp(self.vms)/vscale,
                                yerr=exp(self.vss)/vscale, fmt='o', c=col)
             else:
-                if self.nutrients == False:
+                if self.ndat == False:
                     ax.errorbar(self.htimes, exp(self.hms)/hscale,
                                 yerr=exp(self.hss)/hscale, fmt='o', c=col)
                 else:
@@ -291,21 +252,21 @@ class all_mods:
                 ax1[0].plot(self.mtimes, exp(dat[0])/hscale,label=self.modellabel)
                 ax1[1].plot(self.mtimes, exp(dat[1])/vscale)
             else:
-                if self.nutrients == False:
-                    ax1.plot(self.mtimes, exp(dat[0])/hscale)
+                if self.ndat == False:
+                    ax1.plot(self.mtimes, exp(dat[0])/hscale, label='#I states ='+str(self.nstates))
                 else:
-                    ax1[0].plot(self.mtimes, exp(dat[0]))
-                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale)
+                    ax1[0].plot(self.mtimes, exp(dat[0]), label='#I states ='+str(self.nstates))
+                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale, label='# I states='+str(self.nstates))
         else:
             if self.control == False:
                 ax1[0].plot(self.mtimes, exp(dat[0])/hscale, c=col)
                 ax1[1].plot(self.mtimes, exp(dat[1])/vscale, c=col)
             else:
-                if self.nutrients == False:
-                    ax1.plot(self.mtimes, exp(dat[0])/hscale, c=col)
+                if self.ndat == False:
+                    ax1.plot(self.mtimes, exp(dat[0])/hscale, c=col, label='# I states='+str(self.nstates))
                 else:
-                    ax1[0].plot(self.mtimes, exp(dat[0]), c=col)
-                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale, c=col)
+                    ax1[0].plot(self.mtimes, exp(dat[0]), c=col, label='# I states='+str(self.nstates))
+                    ax1[1].plot(self.mtimes, exp(dat[1])/hscale, c=col, label='# I states='+str(self.nstates))
 
     # calculate scales so that the results are plotted with reasonable numbers
     def get_scales(self):
@@ -318,156 +279,140 @@ class all_mods:
             vscale = 0.0
         return hscale, vscale
 
+    def get_params(self,key):
+        ps = []
+        for v in self.pdic.keys():
+            if key in v:
+                ps.append(v)
+        return r_[[self.pdic[p] for p in ps]]
+
     # this function is where the different models are defined
     def func(self, u, t):
-        mum = self.pdic['mum']
-        phi = self.pdic['phi']
-        beta = self.pdic['beta']
-        deltv = self.pdic['deltv']
-        delth = self.pdic['delth']
-        lambd = self.pdic['lambd']
-        lambdl = self.pdic['lambdl']
-        rho = self.pdic['rho']
-        mui = self.pdic['mui']
-        psi = self.pdic['psi']
-        alp = self.pdic['alp']
-        tau = self.pdic['tau']
-        betal = self.pdic['betal']
-        eps = self.pdic['eps']
-        gam = self.pdic['gam']
-        mur = self.pdic['mur']
-        aff = self.pdic['aff']
-        vaf = self.pdic['vaf']
-        bro = self.pdic['bro']
-        muv = self.pdic['muv']
-        N1, N2, S, Id, Ia, R, V = u[0], u[1], u[2], u[3], u[4], u[5], u[6]
-        model = self.get_model()
-        mu = self.calc_growth(N1)
-        mv = self.calc_growth_pred(N2)
-        dN1dt = self.get_nut_uptake(mu, S, 'aff')
-        dN2dt = self.get_nut_uptake(mv, V, 'vaf')
-        if (model == 'F1'):
-            dSdt = mu*S
-            dIddt, dIadt, dRdt, dVdt = 0.0, 0.0, 0.0, 0.0
-        elif (model == 'F2'):
-            dSdt = mu*S - phi*S*V
-            dVdt = beta*phi*S*V - phi*S*V - deltv*V
-            dIddt, dIadt, dRdt = 0.0, 0.0, 0.0
-        elif (model == 'F3'):
-            dSdt = mu*S - phi*S*V + rho*Id - psi*S*Id - delth*S
-            dIddt = phi*S*V - rho*Id + mui*Id - lambd*Id - delth*Id
-            dVdt = beta*lambd*Id - phi*S*V - deltv*V + alp*Id + mv*V
-            dIadt, dRdt = 0.0, 0.0
-        elif (model == 'F4'):
-            dSdt = mu*S - phi*S*V + rho*(Id+eps*Ia) - psi*S*(Id+Ia) - delth*S
-            #sys.exit()
-            dIddt = phi*S*V - Id/tau - rho*Id + mui*Id - lambdl*Id - delth*Id
-            dIadt = Id/tau - lambd*Ia - eps*rho*Ia - delth*Ia
-            dRdt = 0.0
-            dVdt = beta*lambd*Ia + betal*lambdl * \
-                Id - phi*S*V - deltv*V + alp*(Id+Ia)
-        elif (model == 'F5'):
-            dSdt = mu*S - phi*S*V + rho*(Id+eps*Ia) - psi*S*(Id+Ia) - delth*S
-            dIddt = phi*S*V - Id/tau - \
-                (rho+gam)*Id + mui*Id - lambd*Id - delth*Id
-            dIadt = Id/tau - lambd*Ia - eps*(rho+gam)*Ia - delth*Ia
-            dRdt = gam*(Id + eps*Ia) + mur*R - delth*R
-            dVdt = beta*lambd*Ia + betal*lambd * \
-                Id - phi*S*V - deltv*V + alp*(Id+Ia)
-        return concatenate([r_[[dN1dt]], r_[[dN2dt]], r_[[dSdt]], r_[[dIddt]], r_[[dIadt]], r_[[dRdt]], r_[[dVdt]]])
-
-    def get_nut_uptake(self, mu, S, aff):
-        if (aff in self.pnames):
-            if self.nutrients == True:
-                Qn = (amax(exp(self.nms))-amin(exp(self.nms))) / \
-                    (amax(exp(self.hms))-amin(exp(self.hms)))
-                if isnan(Qn):
-                    Qn = 2e-7
+        mum = self.get_params('mumh')
+        mumv = self.get_params('mumv')
+        phi = self.get_params('phi')
+        bets = self.get_params('beta')
+        delt = self.get_params('del')
+        if self.control == True:
+            if self.hnutlim == True:
+                N1, S = u[0], u[1]
+                mu = self.calc_growth(N1)
+                dN1dt = self.get_nut_uptake(mu, r_[[S]])
+                dSdt = mu*S - delt*S
+                return r_[[dN1dt,dSdt]]
             else:
-                Qn = 1.0
-            uptake = -mu*S*Qn
+                S = u[0]
+                dSdt = mum*S
+                return r_[[dSdt]]
         else:
-            uptake = 0.0
+            if (self.hnutlim == True) and (self.pnutlim == False):
+                N1 = u[0]
+            if (self.hnutlim == False) and (self.pnutlim == True):
+                N2 = u[0]
+            if (self.hnutlim == True) and (self.pnutlim == True):
+                N1, N2 = u[0],u[1]
+            S, V = u[self.hindex], u[-1]
+            if self.hnutlim == True:
+                mh = self.calc_growth(N1)
+            else:
+                mh = mum
+            if self.pgrowth == True:
+                if self.pnutlim == True:
+                    mv = self.calc_growth_pred(N2)
+                    dN2dt = self.get_nut_uptake(mv, V)
+                else:
+                    mv = muv
+            else:
+                mv = 0.0
+            if self.nstates > 0:
+                Is = u[self.hindex+1:-1]
+                muis = self.get_params('mui')
+                lams = self.get_params('lam')
+                psis = self.get_params('psi')
+                alps = self.get_params('alp')
+                rhos = self.get_params('rho')
+                if self.hnutlim == True:
+                    dN1dt = self.get_nut_uptake(mh, concatenate((r_[[S]],Is)))
+                dSdt = mh*S - phi*S*V + sum(rhos*Is) - sum(psis*S*Is)
+                if self.nstates > 1:
+                    taus = self.get_params('tau')
+                    Iloss = concatenate((Is[:-1]/taus,r_[[0.0]]))
+                    Iprod = concatenate((phi*S*V,Is[:-1]/taus))
+                else:
+                    Iloss = r_[[0.0]]
+                    Iprod = phi*S*V
+                dIsdt = Iprod - Iloss - rhos*Is + muis*Is - lams*Is
+                dVdt = sum(bets*lams*Is) + sum(alps*Is) - phi*S*V - delt*V + mv*V
+            else:
+                if self.hnutlim == True:
+                    dN1dt = self.get_nut_uptake((mh, concatenate(r_[[S]])))
+                dSdt = mh*S - phi*S*V
+                dVdt = (bets[0]-1)*phi*S*V - delt*V + mv*V
+            if self.nstates > 0:
+                if (self.hnutlim == False) and (self.pnutlim == False):
+                    return concatenate((dSdt,dIsdt,dVdt))
+                if (self.hnutlim == True) and (self.pnutlim == False):
+                    return concatenate((r_[[dN1dt]],r_[[dSdt]],dIsdt,r_[[dVdt]]))
+                if (self.hnutlim == False) and (self.pnutlim == True):
+                    return concatenate((r_[[dN2dt]],r_[[dSdt]],dIsdt,r_[[dVdt]]))
+                if (hnutlim == True) and (pnutlim == True):
+                    return concatenate((r_[[dN1dt]],r_[[dN2dt]],r_[[dSdt]],dIsdt,r_[[dVdt]]))
+            else:
+                if (self.hnutlim == False) and (self.pnutlim == False):
+                    return concatenate((dSdt,dVdt))
+                if (self.hnutlim == True) and (self.pnutlim == False):
+                    return concatenate((r_[[dN1dt]],r_[[dSdt]],r_[[dVdt]]))
+                if (self.hnutlim == False) and (self.pnutlim == True):
+                    return concatenate((r_[[dN2dt]],r_[[dSdt]],r_[[dVdt]]))
+                if (hnutlim == True) and (pnutlim == True):
+                    return concatenate((r_[[dN1dt]],r_[[dN2dt]],r_[[dSdt]],r_[[dVdt]]))
+    def get_nut_uptake(self, mu, S):
+        if self.ndat == True:
+            Qn = (amax(exp(self.nms))-amin(exp(self.nms))) / \
+                (amax(exp(self.hms))-amin(exp(self.hms)))
+            if isnan(Qn):
+                Qn = 2e-7
+        else:
+            Qn = 1.0
+        uptake = -sum(mu*S*Qn)
         return uptake
 
     # calculate susceptible host growth rate
     def calc_growth(self, N):
-        if ('aff' in self.pnames):
-            mu = self.pdic['mum']*N/(N+self.pdic['mum']/self.pdic['aff'])
+        if self.hnutlim == True:
+            mus = self.pdic['mumh']*N/(N+self.pdic['mumh']/self.pdic['aff'])
         else:
-            mu = self.pdic['mum']
-        return mu
+            mus = self.pdic['mumh']
+        return mus
 
     def calc_growth_pred(self, N):
-        if ('vaf' in self.pnames):
-            mu = self.pdic['muv']*N/(N+self.pdic['muv']/self.pdic['vaf'])
+        if self.pnutlim == True:
+            mu = self.pdic['mumv']*N/(N+self.pdic['mumv']/self.pdic['vaf'])
         else:
-            if ('muv' in self.pnames):
-                mu = self.pdic['muv']
+            if self.pgrowth == True:
+                mu = self.pdic['mumv']
             else:
                 mu = 0.0
         return mu
 
-    # special function to help determine which model structure to use in 'func'
-    def get_model(self):
-        F1, F2, F3, F4, F5 = False, False, False, False, False
-        if (('aff' in self.pnames) or ('mum' in self.pnames)):
-            F1 = True
-        if ('mum' in self.pnames) and ('phi' in self.pnames) and ('beta' in self.pnames):
-            F1 = False
-            F2 = True
-            if ('lambd' in self.pnames):
-                F2 = False
-                F3 = True
-                if ('tau' in self.pnames):
-                    F3 = False
-                    F4 = True
-                    if ('gam' in self.pnames):
-                        F4 = False
-                        F5 = True
-                elif ('gam' in self.pnames):
-                    F3 = False
-                    F5 = True
-        smods = F1+F2+F3+F4+F5
-        if (smods == 0):
-            print(
-                'there are not enough parameters for coupled state variables, try again')
-            sys.exit()
-        elif (smods > 1):
-            print(
-                'more than one possible model to use. This is a bug, email: dtalmy@utk.edu')
-            sys.exit()
-        elif (F1):
-            return 'F1'
-        elif (F2):
-            return 'F2'
-        elif (F3):
-            return 'F3'
-        elif (F4):
-            return 'F4'
-        elif (F5):
-            return 'F5'
-
     # fitting procedure
-    def get_best_fits(self): ###Either add in the plot models within this, or make your own plots to see each model fits a d the correspknding chi (do show() and then close(): a new figure each time)
-        ### F,n = subplots(1,2), show(), close() ###do this on dataset where the high densities of the cells are the most wonky: Cant get the high values
-        ### Could be issue with log tranformation of the data, or the means, or the tranformation of the error, or all of the above
+    def get_best_fits(self):
         dat = self.integrate()
         chi = self.get_chi(dat)
-        npars = len(self.pnames)
+        self.npars = len(self.pnames)
         ar = 0.0
         nits, pits, burnin = self.nits, self.pits, self.burnin
         ars, likelihoods = r_[[]], r_[[]]
-        opt = ones(npars)
-        stds = zeros(npars) + 0.05
-        pall = [r_[[]] for i in range(npars)]
+        opt = ones(self.npars)
+        stds = zeros(self.npars) + 0.05
+        pall = [r_[[]] for i in range(self.npars)]
         iterations = arange(1, nits, 1)
         print('iteration; ' 'error; ' 'acceptance ratio')
-        for it in iterations: ###Most of the stuff is done in this loop. Try to map out / visualize the methods and step by step of this
+        for it in iterations:
             params_old = self.get_traits()
             self.params = params_old
             # this is where we randomly change the parameter values
-            self.params = self.params + opt*normal(0, stds, npars)
+            self.params = self.params + opt*normal(0, stds, self.npars)
             self.set_traits(self.params)
             dat = self.integrate()  # call the integration function
             chinew = self.get_chi(dat) ### get chi is critical, it determines the error that the rest of this is based on
@@ -494,7 +439,6 @@ class all_mods:
         for (s, l) in zip(pss, self.pnames):
             print(l+'std', '=', s)
         print(' ')
-        # self.set_traits(log(pms))
         self.pall = pall
         self.pms, self.pss = {}, {}
         self.set_traits(log(pms))
@@ -503,6 +447,17 @@ class all_mods:
             self.pss[param] = sd
         self.likelihoods = likelihoods[burnin:]
         self.iterations = iterations[burnin:]
+
+    # function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)
+    def plot_all(self, delt=900.0 / 86400.0):
+        if (self.control == False):
+            days = max(amax(self.htimes),amax(self.vtimes))
+        else:
+            days = amax(self.htimes)
+        times = arange(0, days, delt)
+        inits = self.get_inits()
+        self.mtimes = times
+        u = odeint(self.func, inits, times).T
 
     # function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)
     def integrate(self, forshow=False, delt=900.0 / 86400.0):
@@ -522,20 +477,20 @@ class all_mods:
                             for a in self.vtimes]]  # same for viruses
                 # host density
                 hnt = sum(r_[[u[i][hinds]
-                              for i in arange(2, inits.shape[0]-1)]], 0)
+                              for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                 vnt = u[-1][vinds]  # virus density
             else:
-                hnt = sum(r_[[u[i] for i in arange(2, inits.shape[0]-1)]], 0)
+                hnt = sum(r_[[u[i] for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                 vnt = u[-1]
             dat = [hnt, vnt]
         else:
             if forshow == False:
-                if self.nutrients == False:
+                if self.ndat == False:
                     hinds = r_[[where(abs(a-times) == min(abs(a-times)))[0][0]
                                 for a in self.htimes]]
                     # host density
                     hnt = sum(r_[[u[i][hinds]
-                                  for i in arange(1, inits.shape[0]-1)]], 0)
+                                  for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                     dat = [hnt]
                 else:
                     ninds = r_[[where(abs(a-times) == min(abs(a-times)))[0][0]
@@ -545,31 +500,35 @@ class all_mods:
                     nnt = u[0][ninds]  # nutrient concentration
                     # host density
                     hnt = sum(r_[[u[i][hinds]
-                                  for i in arange(2, inits.shape[0]-1)]], 0)
+                                  for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                     dat = [nnt, hnt]
             else:
-                if self.nutrients == False:
+                if self.ndat == False:
                     hnt = sum(r_[[u[i]
-                                  for i in arange(2, inits.shape[0]-1)]], 0)
+                                  for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                     dat = [hnt]
                 else:
                     nnt = u[0]
                     hnt = sum(r_[[u[i]
-                                  for i in arange(2, inits.shape[0]-1)]], 0)
+                                  for i in arange(self.hindex, inits.shape[0]-1)]], 0)
                     dat = [nnt, hnt]
-        dat = [ma.log(ma.masked_where(d<0,d)) for d in dat ] ###Check this transformation for making the errors (std dev) uniform; probs not just a simple log transformation. You need something else. 
+        dat = [ma.log(ma.masked_where(d<0,d)) for d in dat ]
         return dat
 
     # helper function to conveniently access traits
     def get_traits(self):
-        traits = r_[[]]
-        for trait in self.pnames:
-            traits = append(traits, log(self.pdic[trait]))
-        return traits
+        vals,keys = r_[[]],[]
+        for (trait,param) in zip(self.pdic.keys(),self.pdic.values()):
+            if param > 0.0:
+                vals = append(vals, log(param))
+                keys.append(trait)
+        self.params = vals
+        self.pnames = keys
+        return vals
 
     # set parameter values at a given step of the metropolis algorithm
     def set_traits(self, logged_params):
-        for (trait, param) in zip(self.pnames, logged_params):
+        for (trait,param) in zip(self.pnames,logged_params):
             self.pdic[trait] = exp(param)
 
     # get the error sum of squares
@@ -579,13 +538,14 @@ class all_mods:
             chi = sum((hnt - self.hms) ** 2 / (self.hss ** 2)) \
                 + sum((vnt - self.vms) ** 2 / (self.vss ** 2))
         else:
-            if self.nutrients == False:
+            if self.ndat == False:
                 hnt = dat[0]
                 chi = sum((hnt - self.hms) ** 2 / (self.hss ** 2))
             else:
                 nnt, hnt = dat[0], dat[1]
                 chi = sum((hnt - self.hms) ** 2 / (self.hss ** 2)) \
                     + sum((nnt - self.nms) ** 2 / (self.nss ** 2))
+        self.chi = chi
         return chi
 
     # calculate the adjusted rsquared
@@ -614,7 +574,7 @@ class all_mods:
             sstot = self.hms.shape[0]*var(self.hms) \
                 + self.vms.shape[0]*var(self.vms)
         else:
-            if self.nutrients == True:
+            if self.ndat == True:
                 nnt, hnt = dat[0], dat[1]
                 ssres = sum((hnt - self.hms) ** 2) \
                     + sum((nnt - self.nms) ** 2)
