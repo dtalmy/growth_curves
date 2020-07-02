@@ -88,7 +88,9 @@ print('Load data')
 print('###############################')
 for tag in file_types:
     temp_store = raw_df[raw_df['raw_data'] == tag]
-    print(tag)
+    if '../data/algv/' in tag:
+        tag = tag.replace('../data/algv/','')
+    print(tag,' loaded')
     dict_df[tag] = pd.pivot_table(temp_store,values='abundance', index='group',columns = 'time').T.reset_index()
     infect_df = temp_store[temp_store['group']=="Infected"]
     virus_df = temp_store[temp_store['group']=="Virus"]
@@ -117,35 +119,29 @@ for tag in file_types:
     exp_set_all.append(exp_set.copy())
     vals_all.append(val)
 
-
 #########################################################
 ################## THE MODELS ###########################
 #########################################################
 
 ###Create the result graph pdf ####
-pdf = matplotlib.backends.backend_pdf.PdfPages("../../figures/ModelTester.pdf")
+pdf = matplotlib.backends.backend_pdf.PdfPages("../figures/ModelTester.pdf")
 
-# define the models to be tested
-M1 = ['mum','phi', 'beta', 'lambd'] #Lotka Volterra
-M2 = M1 + ['deltv'] 
-M3 = M2 + ['alp'] #One infection class, including chronic release/budding
-M4 = M2 + ['psi'] #One infection class, including chronic release/budding and host suicide
-M5 = M2 + ['tau'] #Two infection classes with the same lysis and burst size
-M6 = M5 + ['betal'] #Two infection classes with independent burst sizes but the same lysis rate
-M7 = M6 + ['lambdl'] #Two infection classes with independent burst sizes and lysis rates
-M8 = M5 + ['alp'] #Two infection classes including chronic release/budding
-M9 = M2 + ['gam'] #One infection class and one recovery class
-M10 = M5 + ['gam'] #Two infected classes and one recovery class
-#mods = [M1, M2, M7, M9, M10]
-mods = [M9, M10]
-#labs = ['M1', 'M2', 'M7', 'M9', 'M10'] 
-labs = ['M9','M10']
+# define which processes to include in the model
+nstates = arange(0,3) # number of infection states
+chronic = False # budding of cells from infected state
+suicide = False # programmed cell death by infected hosts
+muinfec = False # growth by infected hosts
+recover = False # allow infected hosts to recover from infection
+pgrowth = False # allow the predator to grow in the absence of prey
+hnutlim = False # allow nutrient limitation of the host
+pnutlim = False # allow nutrient limitation of the predator
+
+# put all the defining features into a single list comprehension
+mods = [[n,chronic,suicide,muinfec,recover,pgrowth,hnutlim,pnutlim] for n in nstates]
+
+# define labels to aid in interpretation of output
+labs = ['#I states ='+str(n) for n in nstates]
 labloc = np.arange(len(labs))  
-
-### Set up Results Dataframe ####
-allTraits = pd.DataFrame(columns =['OrigRef', 'ModelNumber','mu', 'phi', 'beta', 'lambda','AdjR2', 'AIC'])
-allTraits = allTraits[['OrigRef', 'ModelNumber', 'mu', 'phi', 'beta', 'lambda','AdjR2', 'AIC']]
-
 
 #### Run the models ####
 
@@ -156,45 +152,33 @@ print('###############################')
 
 for (inf,tag) in zip(exp_set_all[:1],vals_all[:1]):
     phi_all,beta_all=r_[[]],r_[[]]
-    pmod = all_mods(inf,mods[0], nits=1000,pits=100,burnin=500)
-    figs,axes = pmod.gen_figs(tag)
     allmods = []
     for (mod,lab) in zip(mods,labs):
+        pmod = all_mods(inf,mod, nits=1000,pits=100,burnin=500)
         print(' ')
         print('dataset: ',tag)
         print('model label: ', lab)
-        print('model params: ', mod)
+        print('model params: ', pmod.pnames)
         print(' ')
-        pmod = all_mods(inf,mod, nits=1000,pits=100,burnin=500)
-        pmod.modellabel = mod
+        if mod == mods[0]:
+            figs,axes = pmod.gen_figs(tag)
+        pmod.modellabel = lab
         pmod.do_fitting(axes[0])
         print('AIC: ', pmod.AIC)
+        print('Adjusted R squared: ', pmod.adj_rsquared)
+        print('final error: ', pmod.chi)
         print(' ')
         print('###############################')
         axes[1].plot(pmod.iterations,pmod.likelihoods)
         allmods.append(pmod)
         phi_all = append(phi_all,exp(pmod.pall[1]))
-        allTraits = allTraits.append({'OrigRef': tag, 'mu': pmod.pms['mum'], 'phi': pmod.pms['phi'], 'beta': pmod.pms['beta'], \
-             'lambda': pmod.pms['lambd'], 'AdjR2': pmod.adj_rsquared, 'AIC': pmod.AIC, "ModelNumber": lab}, ignore_index= True)
         for a in axes[0]:
             a.semilogy()
-    mums = r_[[pmod.pms['mum'] for pmod in allmods]]
-    phis = r_[[pmod.pms['phi'] for pmod in allmods]]
-    bets = r_[[pmod.pms['beta'] for pmod in allmods]]
-    dels = r_[[pmod.pms['lambd'] for pmod in allmods]]
-    muss = r_[[pmod.pss['mum'] for pmod in allmods]]
-    phss = r_[[pmod.pss['phi'] for pmod in allmods]]
-    bess = r_[[pmod.pss['beta'] for pmod in allmods]]
-    dess = r_[[pmod.pss['lambd'] for pmod in allmods]]
-    means,stds = [mums,phis,bets,dels],[muss,phss,bess,dess]
+    leg = axes[0][0].legend()
+    leg.draw_frame(False)
     axes[2][0].scatter(arange(len(mods)),r_[[mod.adj_rsquared for mod in allmods]])
     axes[2][1].scatter(arange(len(mods)),r_[[mod.AIC for mod in allmods]])
     for a in axes[2]:
-        a.set_xticks(labloc)
-        a.set_xticklabels(labs, fontweight = "bold")
-        a.tick_params(direction = "in")
-    for (m,e,a) in zip(means,stds,axes[3]):
-        a.errorbar(range(m.shape[0]),m,yerr=e,fmt='o')
         a.set_xticks(labloc)
         a.set_xticklabels(labs, fontweight = "bold")
         a.tick_params(direction = "in")
@@ -203,23 +187,3 @@ for (inf,tag) in zip(exp_set_all[:1],vals_all[:1]):
         close(f)
 pdf.close()
 
-##### Finding the best fits for each study #####
-
-bestTraits = pd.DataFrame(columns =['OrigRef', 'ModelNumber','mu', 'phi', 'beta', 'lambda','AdjR2', 'AIC'])
-bestTraits = bestTraits[['OrigRef', 'ModelNumber', 'mu', 'phi', 'beta', 'lambda','AdjR2', 'AIC']]
-for tag in file_types:
-    ModStudy = allTraits.loc[allTraits.OrigRef == tag]
-    if any(any(np.isfinite(ModStudy['AIC']))==True):
-        bestModel = ModStudy.loc[ModStudy.AIC == ModStudy.AIC.min()]
-        bestTraits = bestTraits.append(bestModel)
-    else: 
-        bestModel = ModStudy.loc[ModStudy.AdjR2 == ModStudy.AdjR2.max()]
-        bestTraits = bestTraits.append(bestModel)
-         
-writer = pd.ExcelWriter('AlgaeModResults.xlsx', engine='xlsxwriter')
-
-bestTraits.to_excel(writer, sheet_name = "BestFits", index = False)
-allTraits.to_excel(writer, sheet_name = "AllFits", index = False)
-
-writer.save()
- 
