@@ -18,6 +18,7 @@ import math
 import matplotlib.backends.backend_pdf
 from batch_fitting_class import *
 
+print('testing, are we collaborators?')
 #########################################################
 ################## DATA PREP ############################
 #########################################################
