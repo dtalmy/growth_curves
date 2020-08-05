@@ -407,7 +407,7 @@ class all_mods:
                 if (hnutlim == True) and (pnutlim == True):
                     return concatenate((r_[[dN1dt]],r_[[dN2dt]],r_[[dSdt]],r_[[dVdt]]))
     
-    def get_nut_uptake(self, mu, S):
+   
         if self.ndat == True:
             Qn = (amax(exp(self.nms))-amin(exp(self.nms))) / \
                 (amax(exp(self.hms))-amin(exp(self.hms)))
