@@ -1,7 +1,6 @@
 from scipy.integrate import *
 from numpy import *
 from pylab import *
-from scipy import *
 from scipy.optimize import least_squares
 import sys
 import matplotlib as plt
@@ -15,7 +14,7 @@ class all_mods:
 
     # initialize the class
 
-    def __init__(self, data, features, modellabel='default model', nits=5000, pits=1000, burnin=2500): ###Post log trans of data, plot the mean/variance (on y) (timepoint on x) to see if the plot ends up as a straight horz line
+    def __init__(self, data, n,suppress = [], modellabel='default model', nits=5000, pits=1000, burnin=2500): ###Post log trans of data, plot the mean/variance (on y) (timepoint on x) to see if the plot ends up as a straight horz line
         ### Before you even do the above, check to see if the worst ones are the ones where there is a stand dev, or we are making it up
         if 'htimes' in data:
             self.htimes = data['htimes']
@@ -28,7 +27,7 @@ class all_mods:
             if 'hss' in data:
                 self.hss = log(1.0+data['hss'].astype(float)**2.0/data['hms']**2.0)**0.5
             else:
-                self.hss = r_[[0.5 for a in data['hms']]]
+                self.hss = r_[[0.2 for a in data['hms']]]
         if 'vms' in data:
             self.vms = log(data['vms'])
             self.control = False
@@ -47,14 +46,21 @@ class all_mods:
                 self.hss = r_[[0.02 for a in data['hms']]]
         else:
             self.ndat = False
-        self.nstates = features[0]
-        self.chronic = features[1] 
-        self.suicide = features[2]
-        self.muinfec = features[3]
-        self.recover = features[4]
-        self.pgrowth = features[5]
-        self.hnutlim = features[6]
-        self.pnutlim = features[7]
+        self.nstates = n
+        self.chronic = False
+        self.suicide = False
+        self.muinfec = True
+        self.recover = False
+        self.pgrowth = False
+        self.hnutlim = False
+        self.pnutlim = False
+        self.lysison = True
+        self.burston = True
+        self.deathon = False
+        if 'lysis' in suppress:
+            self.lysison = False
+        if 'burst' in suppress:
+            self.burston = False
         self.hindex = self.hnutlim + self.pnutlim
         self.param_guess()
         self.nits = nits
@@ -66,11 +72,6 @@ class all_mods:
             self.burnin = burnin
         params = self.get_traits()
 
-    def var_eq(self,x,rmean,rsigmasquared):
-        stdev = ((exp(x[1]**2.0)-1)*exp(2*x[0]+x[1]**2.0)) - rsigmasquared
-        mean = exp(x[0]+0.5*x[1]**2.0) - rmean
-        return [mean,stdev]
-
     # this is the function that is called externally to run the fitting procuedure
     def do_fitting(self, ax1, col=False):
         self.get_best_fits()
@@ -78,6 +79,7 @@ class all_mods:
         self.set_AIC()
         self.plot_model(ax1, col)
 
+    # look for correlations within posterior parameter distributions
     def plot_faucet(self):
         n = len(self.pnames)
         fc,axc = subplots(n,n,figsize=[n*2,n*2])
@@ -87,15 +89,13 @@ class all_mods:
                     axc[i,j].remove()
                 else:
                     axc[i,j].scatter(exp(self.pall[i,:]),exp(self.pall[j,:]),s=5)
-                    #axc[i,j].semilogx()
-                    #axc[i,j].semilogy()
                     axc[i,j].set_xlabel(self.pnames[i])
                     axc[i,j].set_ylabel(self.pnames[j])
-                    #axc[i,j].loglog()
+                    axc[i,j].loglog()
         fc.subplots_adjust(bottom=0.05,left=0.1,top=0.95,right=0.95,hspace=1,wspace=1)
         show()
 
-    # get initial conditions
+    # get initial conditions - allows initial conditions to be set depending on the model choice
     def get_inits(self):
         if self.hnutlim == True:
             if self.ndat == True:
@@ -106,16 +106,16 @@ class all_mods:
             self.N20 = self.pdic['vni']
         if self.control == False:
             if (self.hnutlim==False) and (self.pnutlim==False):
-                inits = concatenate((r_[[exp(self.hms[0])]],zeros(self.nstates), r_[[exp(self.vms[0])]]))
+                inits = concatenate((r_[[exp(self.hms[0])]],ones(self.nstates), r_[[exp(self.vms[0])]]))
             elif (self.hnutlim) and (self.pnutlim == False):   
                 inits = concatenate((r_[[self.N10, exp(self.hms[0])]],\
-                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
+                    ones(self.nstates), r_[[exp(self.vms[0])]]))
             elif (self.hnutlim == False) and (self.pnutlim):
                 inits = concatenate((r_[[self.N20, exp(self.hms[0])]],\
-                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
+                    ones(self.nstates), r_[[exp(self.vms[0])]]))
             elif (self.hnutlim) and (self.pnutlim):   
                 inits = concatenate((r_[[self.N10, self.N20, exp(self.hms[0])]],\
-                    zeros(self.nstates), r_[[exp(self.vms[0])]]))
+                    ones(self.nstates), r_[[exp(self.vms[0])]]))
         else:
             if self.hnutlim == True:
                 inits = concatenate((r_[[self.N10, exp(self.hms[0])]]))
@@ -123,12 +123,32 @@ class all_mods:
                 inits = concatenate((r_[[exp(self.hms[0])]]))
         return inits
 
+    # update the class with latest parameters
     def set_params(self,name,nparams,val):
         if nparams > 1:
             for i in arange(1,nparams+1):
-                self.pdic[name+'_'+str(i)] = val
+                if ('bet' in name) or ('lam' in name):
+                    if i >= self.nstates - 1:
+                        self.pdic[name+'_'+str(i)] = val
+                    else:
+                        self.pdic[name+'_'+str(i)] = 0.0
+                elif ('mui' in name):
+                    if i <= self.nstates:
+                        self.pdic[name+'_'+str(i)] = val
+                else:
+                    self.pdic[name+'_'+str(i)] = val
         elif nparams == 1:
             self.pdic[name] = val
+    
+    # helper function to visually inspect each infected class
+    def debug_plot(self):
+        f,ax = subplots(1,2,figsize=[9,5])
+        self.plot_data(ax)
+        self.plot_model(ax)
+        dat = self.integrate()
+        self.plot_all(ax[0])
+        for a in ax:
+            a.semilogy()
 
     # function for generating initial parameter guesses
     def param_guess(self):
@@ -140,13 +160,14 @@ class all_mods:
             else:
                 self.pdic['aff'] = 0.1/exp(self.nms[0])
         if self.control == False:
-            self.set_params('lambda',self.nstates,0.1)
-            self.set_params('delta',1,0.1)
+            self.set_params('lambda',self.nstates,5.0*self.lysison)
+            self.set_params('delta',1,0.1*self.deathon)
             beta = (amax(exp(self.vms)) - amin(exp(self.vms))) / \
                 (amax(exp(self.hms))-amin(exp(self.hms)))
-            self.set_params('beta',max(1,self.nstates),beta)
+            self.set_params('beta',max(1,self.nstates),beta*self.burston)
             self.set_params('phi',1,0.1 / exp(self.vms[0]))
-            self.set_params('tau',self.nstates-1,1.0 )
+            if self.nstates > 0:
+                self.set_params('tau',self.nstates-1,1.0 / self.nstates  )
             self.set_params('mui',self.nstates,0.1*self.muinfec)
             self.set_params('rho',self.nstates,0.1*self.recover)
             self.set_params('psi',self.nstates,0.1*self.suicide)
@@ -155,6 +176,19 @@ class all_mods:
             if self.pnutlim == True:
                 self.pdic['vaf'] = 0.1/exp(self.vms[0])
                 self.pdic['vni'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/100.0
+
+    # allow the user to define an ad-hoc array for optimization
+    def set_special_params(self,params):
+        for param in params:
+            if 'bet' in param:
+                beta = (amax(exp(self.vms)) - amin(exp(self.vms))) / \
+                    (amax(exp(self.hms))-amin(exp(self.hms)))
+                self.set_params(param,1,beta)
+            if 'alp' in param:
+                self.set_params(param,1,10)
+            else:
+                self.set_params(param,1,0.1)
+        self.get_traits()
 
     # generate figures and add labels
     def gen_figs(self, tag):
@@ -277,8 +311,10 @@ class all_mods:
                                   for i in arange(1, 11)]] > 1))
         else:
             vscale = 0.0
-        return hscale, vscale
+#        return hscale, vscale
+        return 1,1 # currently obsolete
 
+    # return object parameters as a single array
     def get_params(self,key):
         ps = []
         for v in self.pdic.keys():
@@ -326,7 +362,10 @@ class all_mods:
                 mv = 0.0
             if self.nstates > 0:
                 Is = u[self.hindex+1:-1]
-                muis = self.get_params('mui')
+                muil = self.get_params('mui')
+                muis = zeros(self.nstates)
+                for i in range(muil.shape[0]):
+                    muis[i] = muil[i]
                 lams = self.get_params('lam')
                 psis = self.get_params('psi')
                 alps = self.get_params('alp')
@@ -341,8 +380,9 @@ class all_mods:
                 else:
                     Iloss = r_[[0.0]]
                     Iprod = phi*S*V
-                dIsdt = Iprod - Iloss - rhos*Is + muis*Is - lams*Is
-                dVdt = sum(bets*lams*Is) + sum(alps*Is) - phi*S*V - delt*V + mv*V
+                ne = 1.0
+                dIsdt = Iprod - Iloss - rhos*Is + muis*Is - lams*Is*(Is/sum(Is))**ne
+                dVdt = sum(bets*lams*Is*(Is/sum(Is))**ne) + sum(alps*Is*(Is/sum(Is))) - phi*S*V - delt*V + mv*V
             else:
                 if self.hnutlim == True:
                     dN1dt = self.get_nut_uptake((mh, concatenate(r_[[S]])))
@@ -366,6 +406,7 @@ class all_mods:
                     return concatenate((r_[[dN2dt]],r_[[dSdt]],r_[[dVdt]]))
                 if (hnutlim == True) and (pnutlim == True):
                     return concatenate((r_[[dN1dt]],r_[[dN2dt]],r_[[dSdt]],r_[[dVdt]]))
+    
     def get_nut_uptake(self, mu, S):
         if self.ndat == True:
             Qn = (amax(exp(self.nms))-amin(exp(self.nms))) / \
@@ -399,6 +440,7 @@ class all_mods:
     def get_best_fits(self):
         dat = self.integrate()
         chi = self.get_chi(dat)
+        print('a priori error', chi)
         self.npars = len(self.pnames)
         ar = 0.0
         nits, pits, burnin = self.nits, self.pits, self.burnin
@@ -442,14 +484,17 @@ class all_mods:
         self.pall = pall
         self.pms, self.pss = {}, {}
         self.set_traits(log(pms))
+        self.get_traits()
+        self.set_AIC()
+        self.chi = self.get_chi(dat)
         for (mn, sd, param) in zip(pms, pss, self.pnames):
             self.pms[param] = mn
             self.pss[param] = sd
         self.likelihoods = likelihoods[burnin:]
         self.iterations = iterations[burnin:]
 
-    # function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)
-    def plot_all(self, delt=900.0 / 86400.0):
+    # plot 'hidden' variables
+    def plot_all(self, ax,delt=900.0 / 86400.0):
         if (self.control == False):
             days = max(amax(self.htimes),amax(self.vtimes))
         else:
@@ -458,6 +503,9 @@ class all_mods:
         inits = self.get_inits()
         self.mtimes = times
         u = odeint(self.func, inits, times).T
+        for i in range(u.shape[0]-1):
+            ax.plot(times,u[i])
+        ax.set_ylim([2e+5,2e+6])
 
     # function for calling the integration package. Allows flexibility depending on whether you're plotting output or just optimizing)
     def integrate(self, forshow=False, delt=900.0 / 86400.0):

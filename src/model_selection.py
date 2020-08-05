@@ -124,20 +124,13 @@ for tag in file_types:
 #########################################################
 
 ###Create the result graph pdf ####
-pdf = matplotlib.backends.backend_pdf.PdfPages("../figures/ModelTester.pdf")
+pdf = matplotlib.backends.backend_pdf.PdfPages("../figures/second_ten.pdf")
 
 # define which processes to include in the model
-nstates = arange(0,3) # number of infection states
-chronic = False # budding of cells from infected state
-suicide = False # programmed cell death by infected hosts
-muinfec = False # growth by infected hosts
-recover = False # allow infected hosts to recover from infection
-pgrowth = False # allow the predator to grow in the absence of prey
-hnutlim = False # allow nutrient limitation of the host
-pnutlim = False # allow nutrient limitation of the predator
+nstates = arange(0,5) # number of infection states
 
-# put all the defining features into a single list comprehension
-mods = [[n,chronic,suicide,muinfec,recover,pgrowth,hnutlim,pnutlim] for n in nstates]
+# define an array that allows specific parameters to be on or off
+sp3 = ['mui_1','lambda_2','lambda_3','beta_2','alpha_1']
 
 # define labels to aid in interpretation of output
 labs = ['#I states ='+str(n) for n in nstates]
@@ -150,20 +143,21 @@ print('###############################')
 print('Do fitting')
 print('###############################')
 
-for (inf,tag) in zip(exp_set_all[:1],vals_all[:1]):
+for (dat,tag) in zip(exp_set_all[14:15],vals_all[14:15]):
     phi_all,beta_all=r_[[]],r_[[]]
     allmods = []
-    for (mod,lab) in zip(mods,labs):
-        pmod = all_mods(inf,mod, nits=1000,pits=100,burnin=500)
+    for (n,lab) in zip(nstates,labs):
+        pmod = all_mods(dat,n, nits=5000,pits=1000,burnin=2500)
         print(' ')
         print('dataset: ',tag)
         print('model label: ', lab)
         print('model params: ', pmod.pnames)
         print(' ')
-        if mod == mods[0]:
+        if n == nstates[0]:
             figs,axes = pmod.gen_figs(tag)
         pmod.modellabel = lab
         pmod.do_fitting(axes[0])
+        print('COMPTIME ',b-a)
         print('AIC: ', pmod.AIC)
         print('Adjusted R squared: ', pmod.adj_rsquared)
         print('final error: ', pmod.chi)
@@ -176,8 +170,8 @@ for (inf,tag) in zip(exp_set_all[:1],vals_all[:1]):
             a.semilogy()
     leg = axes[0][0].legend()
     leg.draw_frame(False)
-    axes[2][0].scatter(arange(len(mods)),r_[[mod.adj_rsquared for mod in allmods]])
-    axes[2][1].scatter(arange(len(mods)),r_[[mod.AIC for mod in allmods]])
+    axes[2][0].scatter(arange(len(nstates)),r_[[mod.adj_rsquared for mod in allmods]])
+    axes[2][1].scatter(arange(len(nstates)),r_[[mod.AIC for mod in allmods]])
     for a in axes[2]:
         a.set_xticks(labloc)
         a.set_xticklabels(labs, fontweight = "bold")
