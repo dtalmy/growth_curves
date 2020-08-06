@@ -36,18 +36,22 @@ vss = r_[[656690.0, 2987300.0, 3480600.0, 3981250.0, 4815700.0, 3985500.0,
 dat = {'htimes':htimes,'vtimes':vtimes,'hms':hms,'vms':vms,'hss':hss,'vss':vss}
 
 #########################################################
-########### PLOT THE DATA and PRIOR MODEL SOLUTION   ####
+########    PLOT THE DATA and PRIOR MODEL SOLUTION   ####
 #########################################################
 
+# time array and initial conditions
 days = max(amax(dat['htimes']),amax(dat['vtimes']))
 times = arange(0, days, 900.0 / 86400.0)
 inits = r_[[dat['hms'][0],0,0,0,0,0,dat['vms'][0]]]
+
+# initial parameter guesses
 pars = (1e-6,1e-6,0.2,0.2,0.2,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','I3 turnover','I4 turnover','lysis rate','burst size']
-h,v = integrate(dat,func,inits,times,pars)
-u = odeint(func,inits,times,args=(pars,)).T
 
-# plot
+# run model
+h,v = integrate(dat,func,inits,times,pars)
+
+# plot output
 f,ax = subplots(1,2,figsize=[9,4.5])
 ax[0].errorbar(dat['htimes'],dat['hms'],yerr=dat['hss'])
 ax[1].errorbar(dat['vtimes'],dat['vms'],yerr=dat['vss'])
