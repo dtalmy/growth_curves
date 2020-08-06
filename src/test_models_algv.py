@@ -70,6 +70,10 @@ pall,likelihoods,iterations = do_fitting(dat,inits,times,pars,pnames,nits=1000,p
 b = time.time()
 print('COMPTIME ',b-a) # print simulation time
 
+#########################################################
+## PLOT FITTED MODEL AND PRINT POSTERIOR STATISTICS  ####
+#########################################################
+
 # print some statistics and plot the fitted model
 rmd,rms = posterior_raw_stats(pall)
 h,v = integrate(dat,func,inits,times,rmd)
