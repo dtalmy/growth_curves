@@ -5,6 +5,6 @@ simple use case:
 
 After cloning the repo, cd to /growth_curves/src/ and run 
 
-python model_selection.py
+python test_models_algv.py
 
-The script will run model fitting on two datasets in /growth_curves/data/algv/ and save a pdf with output to /growth_curves/figures/Model_tester.pdf
+The script will run model fitting on a sample dataset and plot output to terminal
