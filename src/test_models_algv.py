@@ -1,7 +1,6 @@
 from numpy import *
 from pylab import *
 from scipy.integrate import *
-import matplotlib.backends.backend_pdf
 from batch_fitting_module import *
 
 #########################################################
