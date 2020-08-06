@@ -6,7 +6,9 @@ from scipy.integrate import *
 ################## MODEL FUNCTIONS#######################
 #########################################################
 
-# five infected classes
+# here is a model with many infected classes - in general I would like to have 
+# flexibility to test many different model structures, and fit different 
+# parameters
 def func(u,t,ps):
     mum,phi,tau1,tau2,tau3,tau4,lam,beta=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5],ps[6],ps[7]
     S,I1,I2,I3,I4,I5,V = u[0],u[1],u[2],u[3],u[4],u[5],u[6]
