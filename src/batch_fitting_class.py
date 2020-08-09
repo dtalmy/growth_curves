@@ -203,7 +203,6 @@ class all_mods:
         if self.control == True:
             f4, ax4 = subplots(1, 1, figsize=[10, 10])
             f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
-            print('Heelo')
         else:
             f4, ax4 = subplots(2, 2, figsize=[10, 10])
             f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
@@ -225,7 +224,7 @@ class all_mods:
         ax3[1].set_ylabel(r'AIC', fontsize=fs)
         ax3[0].set_ylim([0, 1])
         if self.control == True:
-            ylabs = ['mu']
+            ylabs = ['mu', 'aff']
             ax4.set_ylabel(ylabs, fontsize=fs)
         else:
             ylabs = ['mu', 'phi', 'beta', 'lambda']
