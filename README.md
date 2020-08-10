@@ -1,10 +1,12 @@
 # growth_curves
-developing software for fitting dynamic models to lab growth curves
+growth_curves
 
-simple use case:
+developing package for fitting dynamic models to lab growth curves
 
-After cloning the repo, cd to /growth_curves/src/ and run 
+case for parallel computation:
 
-python model_selection.py
+After cloning the repo, cd to /growth_curves/src/ and run
 
-The script will run model fitting on two datasets in /growth_curves/data/algv/ and save a pdf with output to /growth_curves/figures/Model_tester.pdf
+python test_models_algv.py
+
+The script will run model fitting on a sample dataset and plot output to terminal
