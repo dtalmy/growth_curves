@@ -192,14 +192,23 @@ class all_mods:
         plt.rcParams['ytick.major.size'] = 5
         plt.rcParams['xtick.direction'] = "in"
         plt.rcParams['ytick.direction'] = "in"
-        f1, ax1 = subplots(1, 1, figsize=[9.5, 4.0])
+        if self.control == True:
+            f1, ax1 = subplots(1, 1, figsize=[9.5, 4.0])
+        else: 
+            f1, ax1 = subplots(1, 2, figsize=[9.5, 4.0])
         f1.subplots_adjust(bottom=0.13, wspace=0.3, hspace=0.3)
         f2, ax2 = subplots(figsize=[8, 5])
         f3, ax3 = subplots(1, 2, figsize=[9.5, 4.0])
         f3.subplots_adjust(wspace=0.3, bottom = 0.15)
-        f4, ax4 = subplots(2, 2, figsize=[10, 10])
-        f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
-        ax4 = ax4.flatten()
+        if self.control == True:
+            f4, ax4 = subplots(1, 1, figsize=[10, 10])
+            f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
+        else:
+            f4, ax4 = subplots(2, 2, figsize=[10, 10])
+            f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
+            ax4 = ax4.flatten()
+        #f4.subplots_adjust(wspace=0.35, bottom = 0.06, top = 0.9)
+        #ax4 = ax4.flatten()
         f1.suptitle('Dynamics '+tag, fontweight = "bold")
         f2.suptitle('Sum of square errors '+tag, fontweight = "bold")
         f3.suptitle('Fitting assessment '+tag, fontweight = "bold")
@@ -214,9 +223,15 @@ class all_mods:
         ax3[1].set_xlabel(r'Model tag', fontsize=fs)
         ax3[1].set_ylabel(r'AIC', fontsize=fs)
         ax3[0].set_ylim([0, 1])
-        ylabs = ['mu', 'phi', 'beta', 'lambda']
-        for (ax, lab) in zip(ax4, ylabs):
-            ax.set_ylabel(lab, fontsize=fs)
+        if self.control == True:
+            ylabs = ['mu', 'aff']
+            ax4.set_ylabel(ylabs, fontsize=fs)
+        else:
+            ylabs = ['mu', 'phi', 'beta', 'lambda']
+            for (ax, lab) in zip(ax4, ylabs):
+                ax.set_ylabel(lab, fontsize=fs)
+        #for (ax, lab) in zip(ax4, ylabs):
+            #ax.set_ylabel(lab, fontsize=fs)
         figs, axes = [f1, f2, f3, f4], [ax1, ax2, ax3, ax4]
         return figs, axes
 
