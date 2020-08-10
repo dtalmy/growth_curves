@@ -1,6 +1,6 @@
-from numpy import *
-from pylab import *
-from scipy.integrate import *
+import numpy as np
+import pylab
+from scipy.integrate import odeint
 
 #########################################################
 ################## MODEL FUNCTIONS#######################
@@ -10,6 +10,7 @@ from scipy.integrate import *
 # flexibility to test many different model structures, and fit different 
 # parameters
 def func(u,t,ps):
+
     mum,phi,tau1,tau2,tau3,tau4,lam,beta=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5],ps[6],ps[7]
     S,I1,I2,I3,I4,I5,V = u[0],u[1],u[2],u[3],u[4],u[5],u[6]
     dSdt = mum*S - phi*S*V
@@ -19,50 +20,97 @@ def func(u,t,ps):
     dI4dt = I3/tau3 - I4/tau4
     dI5dt = I4/tau4 - lam*I5
     dVdt = beta*lam*I5 - phi*S*V
-    return r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dVdt]]
 
 #########################################################
 ############# MODEL-DATA FITTING FUNCTIONS ##############
 #########################################################
 
 # integrate - allows option to return model solutions at sample times
-def integrate(dat,func,inits,times,pars,forshow=True):
-    mod = odeint(func,inits,times,args=(pars,)).T
-    h,v = sum(mod[:-1,:],0),mod[-1,:]
+def integrate(dat,func,inits,times,parameters,forshow=True):
+    '''allows option to return model solutions at sample times
+
+    Parameters
+    ----------
+    dat : dictionary
+        A dictionary with host sampling times,virus sampling times,
+        host abundances, virus abundances, host uncertainty, virus uncertainty
+    func : function
+        model function
+    inits : array-like
+        array-like object containing initial values
+    times: array-like
+        array-like object containing times
+    parameters : array-like
+        array-like object containing parameters for func
+
+    Returns
+    -------
+    tupple : (h, v)
+        host and virus counts
+    '''
+    mod = odeint(func,inits,times,args=(parameters,)).T
+    h,v = np.sum(mod[:-1,:],0),mod[-1,:]
     if forshow==False:
-        hinds = r_[[where(abs(a-times) == min(abs(a-times)))[0][0]
+        hinds = np.r_[[np.where(abs(a-times) == min(abs(a-times)))[0][0]
                     for a in dat['htimes']]]
-        vinds = r_[[where(abs(a-times) == min(abs(a-times)))[0][0]
+        vinds = np.r_[[np.where(abs(a-times) == min(abs(a-times)))[0][0]
                     for a in dat['vtimes']]]
         h,v = h[hinds],v[vinds]  # virus density
     return h,v
 
 # get the error sum of squares
 def get_chi(dat,hnt,vnt):
-    chi = sum((log(hnt) - log(dat['hms'])) ** 2 / (log(1.0+dat['hss'].astype(float)**2.0/dat['hms']**2.0)**0.5 ** 2)) \
-        + sum((log(vnt) - log(dat['vms'])) ** 2 / (log(1.0+dat['vss'].astype(float)**2.0/dat['vms']**2.0)**0.5 ** 2))
+    chi = sum((np.log(hnt) - np.log(dat['hms'])) ** 2 / (np.log(1.0+dat['hss'].astype(float)**2.0/dat['hms']**2.0)**0.5 ** 2)) \
+        + sum((np.log(vnt) - np.log(dat['vms'])) ** 2 / (np.log(1.0+dat['vss'].astype(float)**2.0/dat['vms']**2.0)**0.5 ** 2))
     return chi
 
 # actual fitting procedure
 def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
+    '''allows option to return model solutions at sample times
+
+    Parameters
+    ----------
+    dat : dictionary
+        A dictionary with host sampling times,virus sampling times,
+        host abundances, virus abundances, host uncertainty, virus uncertainty
+    inits : array-like
+        array-like object containing initial values
+    times: array-like
+        array-like object containing times
+    pars : array-like
+        array-like object containing parameters for func
+    pnames : list
+        list of parameter names
+    nits : int
+        number of iterations
+    pits : int
+        ?
+    burnin : int
+        number of iterations to ignore initially
+    Returns
+    -------
+    tupple : pall, likelihoods, iterations
+        host and virus counts
+    '''
     h,v = integrate(dat,func,inits,times,pars,forshow=False)
     npars = len(pars)
     ar,ic = 0.0,0
-    ars, likelihoods = r_[[]], r_[[]]
-    opt = ones(npars)
-    stds = zeros(npars) + 0.05
-    pall = r_[[zeros(nits-burnin) for i in range(npars)]]
-    iterations = arange(1, nits, 1)
+    ars, likelihoods = np.r_[[]], np.r_[[]]
+    opt = np.ones(npars)
+    stds = np.zeros(npars) + 0.05
+    pall = np.r_[[np.zeros(nits-burnin) for i in range(npars)]]
+    iterations = np.arange(1, nits, 1)
     chi = get_chi(dat,h,v)
     print('a priori error', chi)
     print('iteration; ' 'error; ' 'acceptance ratio')
     for it in iterations:
         pars_old = pars
-        pars = exp(log(pars) + opt*normal(0, stds, npars))
+        pars = np.exp(np.log(pars) + opt*pylab.normal(0, stds, npars))
         h,v = integrate(dat,func,inits,times,pars,forshow=False)
         chinew = get_chi(dat,h,v)
-        likelihoods = append(likelihoods, chinew)
-        if exp(chi-chinew) > rand():  # KEY STEP
+        likelihoods = np.append(likelihoods, chinew)
+        if np.exp(chi-chinew) > pylab.rand():  # KEY STEP
             chi = chinew
             if it > burnin:  # only store the parameters if you've gone through the burnin period
                 pall[:,ic] = pars
@@ -72,7 +120,7 @@ def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
             pars = pars_old
         if (it % pits == 0):
             print(it,';', round(chi,2),';', ar/pits)
-            ars = append(ars, ar/pits)
+            ars = np.append(ars, ar/pits)
             ar = 0.0
     likelihoods = likelihoods[burnin:]
     iterations = iterations[burnin:]
@@ -95,15 +143,15 @@ def print_posterior_statistics(pall,pnames):
 
 # calculate mean and std of logged posterior distributions
 def posterior_log_stats(pall):
-    lms = r_[[mean(log(p)) for p in pall]] # mean of logged pars
-    lns = r_[[std(log(p)) for p in pall]] # stdev of logged pars
+    lms = np.r_[[np.mean(np.log(p)) for p in pall]] # mean of logged pars
+    lns = np.r_[[np.std(np.log(p)) for p in pall]] # stdev of logged pars
     return lms,lns
 
 # calculate median and std of raw posterior distributions
 def posterior_raw_stats(pall):
     lms,lns = posterior_log_stats(pall) # log mean and stdev (guaussian)
-    rmd = exp(lms) # raw median
-    rms = ((exp(lns**2)-1)*exp(2*lms+lns**2.0))**0.5 # raw stdev
+    rmd = np.exp(lms) # raw median
+    rms = ((np.exp(lns**2)-1)*np.exp(2*lms+lns**2.0))**0.5 # raw stdev
     return rmd,rms
 
 
