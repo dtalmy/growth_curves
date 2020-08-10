@@ -58,7 +58,8 @@ chis,aics,rsqs=r_[[]],r_[[]],r_[[]]
 pdf = matplotlib.backends.backend_pdf.PdfPages("../figures/test_selection.pdf")
 
 # specify # of iterations
-nits,pits,burnin=1000000,100000,10000
+#nits,pits,burnin=1000000,100000,10000
+nits,pits,burnin=1000,100,500
 
 # start timer
 a = time.time()
