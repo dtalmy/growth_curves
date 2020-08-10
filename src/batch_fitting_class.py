@@ -192,7 +192,7 @@ class all_mods:
         plt.rcParams['ytick.major.size'] = 5
         plt.rcParams['xtick.direction'] = "in"
         plt.rcParams['ytick.direction'] = "in"
-        f1, ax1 = subplots(1, 2, figsize=[9.5, 4.0])
+        f1, ax1 = subplots(1, 1, figsize=[9.5, 4.0])
         f1.subplots_adjust(bottom=0.13, wspace=0.3, hspace=0.3)
         f2, ax2 = subplots(figsize=[8, 5])
         f3, ax3 = subplots(1, 2, figsize=[9.5, 4.0])
@@ -344,7 +344,7 @@ class all_mods:
         model = self.get_model()
         mu = self.calc_growth(N1)
         mv = self.calc_growth_pred(N2)
-        dN1dt = self.get_nut_uptake(mu, S, 'aff')
+        dN1dt = self.get_nut_uptake(mu, S, 'aff') #this is where we get the non-linear curve; 1st order response curve
         dN2dt = self.get_nut_uptake(mv, V, 'vaf')
         if (model == 'F1'):
             dSdt = mu*S
