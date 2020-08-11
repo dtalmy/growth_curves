@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pylab
 from scipy.integrate import odeint
 
@@ -9,8 +10,15 @@ from scipy.integrate import odeint
 # here is a model with many infected classes - in general I would like to have 
 # flexibility to test many different model structures, and fit different 
 # parameters
-def func(u,t,ps):
+def model_5infection(u,t,ps):
+    '''
+    Computes the derivative of u at t
+    
+    In this model, the host as 5 different infected states before lysis and virion liberation
 
+    ps should be an array indext in the following manner:
+    mum,phi,tau1,tau2,tau3,tau4,lam,beta
+    '''
     mum,phi,tau1,tau2,tau3,tau4,lam,beta=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5],ps[6],ps[7]
     S,I1,I2,I3,I4,I5,V = u[0],u[1],u[2],u[3],u[4],u[5],u[6]
     dSdt = mum*S - phi*S*V
@@ -32,17 +40,16 @@ def integrate(dat,func,inits,times,parameters,forshow=True):
 
     Parameters
     ----------
-    dat : dictionary
-        A dictionary with host sampling times,virus sampling times,
-        host abundances, virus abundances, host uncertainty, virus uncertainty
+    dat : dataframe
+        A dataframe indexed by organism with fields time, abundance, and uncertainty
     func : function
         model function
     inits : array-like
         array-like object containing initial values
     times: array-like
         array-like object containing times
-    parameters : array-like
-        array-like object containing parameters for func
+    parameters : tuple
+        tulpe of parameters, in order as defined by func
 
     Returns
     -------
@@ -50,34 +57,46 @@ def integrate(dat,func,inits,times,parameters,forshow=True):
         host and virus counts
     '''
     mod = odeint(func,inits,times,args=(parameters,)).T
-    h,v = np.sum(mod[:-1,:],0),mod[-1,:]
+    h,v = np.sum(mod[:-1,:],0),mod[-1,:] #np.sum(mod[:-1,:],0) adds S and all infected states
     if forshow==False:
         hinds = np.r_[[np.where(abs(a-times) == min(abs(a-times)))[0][0]
-                    for a in dat['htimes']]]
+                    for a in dat.loc['host']['time']]]
         vinds = np.r_[[np.where(abs(a-times) == min(abs(a-times)))[0][0]
-                    for a in dat['vtimes']]]
+                    for a in dat.loc['virus']['time']]]
         h,v = h[hinds],v[vinds]  # virus density
     return h,v
 
 # get the error sum of squares
 def get_chi(dat,hnt,vnt):
-    chi = sum((np.log(hnt) - np.log(dat['hms'])) ** 2 / (np.log(1.0+dat['hss'].astype(float)**2.0/dat['hms']**2.0)**0.5 ** 2)) \
-        + sum((np.log(vnt) - np.log(dat['vms'])) ** 2 / (np.log(1.0+dat['vss'].astype(float)**2.0/dat['vms']**2.0)**0.5 ** 2))
+    '''
+    calculate the error sum of squares
+
+    chi = (obs - expect)^2 / sqrt(log(1+ uncertain ^2 / expected^2))^2
+    '''
+    chi = sum((np.log(hnt) - np.log(dat.loc['host']['abundance'])) ** 2 / \
+                (np.log(1.0+dat.loc['host']['uncertainty'].astype(float)**2.0/dat.loc['host']['abundance']**2.0)**0.5 ** 2)
+                ) \
+        + sum((np.log(vnt) - np.log(dat.loc['virus']['abundance'])) ** 2 / \
+                (np.log(1.0+dat.loc['virus']['uncertainty'].astype(float)**2.0/dat.loc['virus']['abundance']**2.0)**0.5 ** 2)
+                )
     return chi
 
 # actual fitting procedure
-def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
+def do_fitting(dat,model,inits,times,parameters,nits=1000,pits=100,burnin=500):
     '''allows option to return model solutions at sample times
 
     Parameters
     ----------
-    dat : dictionary
-        A dictionary with host sampling times,virus sampling times,
-        host abundances, virus abundances, host uncertainty, virus uncertainty
+    dat : dataframe
+        A dataframe indexed by organism with fields time, abundance, and uncertainty
+    model : function
+        A function defining the ODE model used in the odeint (scipy fortran wrapper)
     inits : array-like
-        array-like object containing initial values
+        array-like object containing initial values, indexed appropriatly in model fucntion
     times: array-like
         array-like object containing times
+    parameters : dictionary
+        parameter names mapped to values, in order according to args in func
     pars : array-like
         array-like object containing parameters for func
     pnames : list
@@ -85,15 +104,19 @@ def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
     nits : int
         number of iterations
     pits : int
-        ?
+        number of iterations to print
     burnin : int
         number of iterations to ignore initially
+
     Returns
     -------
     tupple : pall, likelihoods, iterations
         host and virus counts
     '''
-    h,v = integrate(dat,func,inits,times,pars,forshow=False)
+    #unpacking parameters
+    pnames = tuple(parameters.keys())
+    pars = tuple([parameters[el] for el in parameters])
+    h,v = integrate(dat,model,inits,times,pars,forshow=False)
     npars = len(pars)
     ar,ic = 0.0,0
     ars, likelihoods = np.r_[[]], np.r_[[]]
@@ -107,7 +130,7 @@ def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
     for it in iterations:
         pars_old = pars
         pars = np.exp(np.log(pars) + opt*pylab.normal(0, stds, npars))
-        h,v = integrate(dat,func,inits,times,pars,forshow=False)
+        h,v = integrate(dat,model,inits,times,pars,forshow=False)
         chinew = get_chi(dat,h,v)
         likelihoods = np.append(likelihoods, chinew)
         if np.exp(chi-chinew) > pylab.rand():  # KEY STEP
@@ -116,7 +139,7 @@ def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
                 pall[:,ic] = pars
                 ar = ar + 1.0  # acceptance ratio
                 ic = ic + 1  # total count
-        else:
+        else: #if chi gets worse, use old parameters
             pars = pars_old
         if (it % pits == 0):
             print(it,';', round(chi,2),';', ar/pits)
@@ -126,7 +149,9 @@ def do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500):
     iterations = iterations[burnin:]
     pall = pall[:,:ic]
     print_posterior_statistics(pall,pnames)
-    return pall,likelihoods,iterations
+    dfraw = {pnames[i]:pall[i] for i in range(0,len(pnames))}
+    df = pd.DataFrame(dfraw)
+    return df,likelihoods,iterations
 
 # print posterior statistics
 def print_posterior_statistics(pall,pnames):
