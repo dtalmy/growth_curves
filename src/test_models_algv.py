@@ -1,8 +1,8 @@
-from numpy import *
+import numpy as np
 from pylab import *
 from scipy.integrate import *
 from batch_fitting_module import *
-
+import pandas as pd
 #########################################################
 ################## DATA - test case #####################
 #########################################################
@@ -34,22 +34,25 @@ vss = r_[[656690.0, 2987300.0, 3480600.0, 3981250.0, 4815700.0, 3985500.0,
 
 # gather in dictionary
 dat = {'htimes':htimes,'vtimes':vtimes,'hms':hms,'vms':vms,'hss':hss,'vss':vss}
-
+virus = pd.DataFrame({'time':vtimes,'abundance':vms,'uncertainty':vss,'organism':'virus'})
+host = pd.DataFrame({'time':htimes,'abundance':hms,'uncertainty':hss,'organism':'host'})
+df = pd.concat([virus,host])
+df = df.set_index(['organism']) #set the index, makes data access *much* easier
 #########################################################
 ########    PLOT THE DATA and PRIOR MODEL SOLUTION   ####
 #########################################################
 
 # time array and initial conditions
-days = max(amax(dat['htimes']),amax(dat['vtimes']))
+days = max(np.amax(dat['htimes']),np.amax(dat['vtimes'])) #find the maximum days from all times
 times = arange(0, days, 900.0 / 86400.0)
 inits = r_[[dat['hms'][0],0,0,0,0,0,dat['vms'][0]]]
 
 # initial parameter guesses
-pars = (1e-6,1e-6,0.2,0.2,0.2,0.2,1.0,50)
+param_init = (1e-6,1e-6,0.2,0.2,0.2,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','I3 turnover','I4 turnover','lysis rate','burst size']
 
 # run model
-h,v = integrate(dat,func,inits,times,pars)
+h,v = integrate(dat,model_5infection,inits,times,param_init)
 
 # plot output
 f,ax = subplots(1,2,figsize=[9,4.5])
@@ -67,9 +70,17 @@ ax[1].semilogy()
 #########################################################
 ########### RUN THE FITTING PROCEDURE                ####
 #########################################################
-
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'I1 turnover':0.2,
+              'I2 turnover':0.2,
+              'I3 turnover':0.2,
+              'I4 turnover':0.2,
+              'lysis rate':1.0,
+              'burst size':50}
 a = time.time()
-pall,likelihoods,iterations = do_fitting(dat,inits,times,pars,pnames,nits=1000,pits=100,burnin=500)
+pall,likelihoods,iterations = do_fitting(df,model_5infection,inits,times,parameters,nits=1000,pits=100,burnin=500)
+#do_fitting(df,model_5infection,inits,times,parameters,nits=1000,pits=100,burnin=500)
 b = time.time()
 print('COMPTIME ',b-a) # print simulation time
 
@@ -78,12 +89,11 @@ print('COMPTIME ',b-a) # print simulation time
 #########################################################
 
 # print some statistics and plot the fitted model
-rmd,rms = posterior_raw_stats(pall)
-h,v = integrate(dat,func,inits,times,rmd)
-ax[0].plot(times,h,label='fitted')
-ax[1].plot(times,v)
-l = ax[0].legend()
-l.draw_frame(False)
+#rmd,rms = posterior_raw_stats(pall)
+#h,v = integrate(dat,model_5infection,inits,times,rmd)
+#ax[0].plot(times,h,label='fitted')
+#ax[1].plot(times,v)
+#l = ax[0].legend()
+#l.draw_frame(False)
 
 show()
-
