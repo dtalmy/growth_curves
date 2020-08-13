@@ -7,6 +7,6 @@ case for parallel computation:
 
 After cloning the repo, cd to /growth_curves/src/ and run
 
-python test_models_algv.py
+python multi_model_comp.py
 
 The script will run model fitting on a sample dataset and plot output to terminal
