@@ -62,7 +62,6 @@ class all_mods:
             self.burston = False
         self.hindex = self.hnutlim + self.pnutlim
         self.param_guess()
->>>>>>> davids_boolean
         self.nits = nits
         self.pits = pits
         self.modellabel=modellabel
@@ -247,7 +246,6 @@ class all_mods:
             if self.pnutlim == True:
                 self.pdic['vaf'] = 0.1/exp(self.vms[0])
                 self.pdic['vni'] = (amax(exp(self.vms)) - amin(exp(self.vms)))/100.0
->>>>>>> davids_boolean
 
     # allow the user to define an ad-hoc array for optimization
     def set_special_params(self,params):
