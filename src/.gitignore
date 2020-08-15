@@ -1,0 +1,11 @@
+*.swo
+*.swn
+*.swp
+dump/
+../figures/all_rough.pdf
+../figures/istates_eqs_3
+../figures/istates_eqs_4
+../figures/sevenstates.pdf
+.Rhistory
+.RData
+__pycache__/
