@@ -36,13 +36,17 @@ vss = r_[[656690.0, 2987300.0, 3480600.0, 3981250.0, 4815700.0, 3985500.0,
 
 # gather in dictionary
 dat = {'htimes':htimes,'vtimes':vtimes,'hms':hms,'vms':vms,'hss':hss,'vss':vss}
+virus = pd.DataFrame({'time':vtimes,'abundance':vms,'uncertainty':vss,'organism':'virus'})
+host = pd.DataFrame({'time':htimes,'abundance':hms,'uncertainty':hss,'organism':'host'})
+df = pd.concat([virus,host])
+df = df.set_index(['organism']) #set the index, makes data access *much* easier
 
 #########################################################
 ########### MODEL SELECTION                          ####
 #########################################################
 
 # first plot the data
-f1,ax1 = plot_data(dat)
+f1,ax1 = plot_data(df)
 
 # font style
 matplotlib.rc('font', family='sans-serif')
@@ -68,55 +72,80 @@ a = time.time()
 pars = (1e-6,1e-8,50)
 pnames = ['host growth rate','transfer affinity','burst size']
 pnames_print = ['$\mu$','$\phi$',r'$\beta$']
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-8,
+              'burst size':50}
 lab = 'No infected classes'
 inits = r_[[dat['hms'][0],dat['vms'][0]]]
-pall,likelihoods,iterations,rmd = master(times,dat,zero_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,zero_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,zero_i,inits,times,rmd,lab,ax1)
+pall,likelihoods,iterations,rmd = master(times,df,zero_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,zero_i,inits,times,pars,pnames)
+ax1 = plot_model(df,zero_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # model with 1 infection classes
 pars = (1e-6,1e-6,1.0,50)
 pnames = ['host growth rate','transfer affinity','lysis rate','burst size']
 pnames_print = ['$\mu$','$\phi$',r'$\lambda$',r'$\beta$']
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'lysis rate':1.0,
+              'burst size':50}
 inits = r_[[dat['hms'][0],0,dat['vms'][0]]]
 lab = 'One infected class'
-pall,likelihoods,iterations,rmd = master(times,dat,one_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,one_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,one_i,inits,times,rmd,lab,ax1)
+pall,likelihoods,iterations,rmd = master(times,df,one_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,one_i,inits,times,pars,pnames)
+ax1 = plot_model(df,one_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # model with 2 infection classes
 pars = (1e-6,1e-6,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','lysis rate','burst size']
 pnames_print = ['$\mu$','$\phi$',r'$\tau_1$',r'$\lambda$',r'$\beta$']
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'I1 turnover':0.2,
+              'lysis rate':1.0,
+              'burst size':50}
 inits = r_[[dat['hms'][0],0,0,dat['vms'][0]]]
 lab = 'Two infected classes'
-pall,likelihoods,iterations,rmd = master(times,dat,two_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,two_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,two_i,inits,times,rmd,lab,ax1)
+pall,likelihoods,iterations,rmd = master(times,df,two_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,two_i,inits,times,pars,pnames)
+ax1 = plot_model(df,two_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # model with 3 infection classes
 pars = (1e-6,1e-6,0.2,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','lysis rate','burst size']
 pnames_print = ['$\mu$','$\phi$',r'$\tau_1$',r'$\tau_2$',r'$\lambda$',r'$\beta$']
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'I1 turnover':0.2,
+              'I2 turnover':0.2,
+              'lysis rate':1.0,
+              'burst size':50}
 inits = r_[[dat['hms'][0],0,0,0,dat['vms'][0]]]
 lab = 'Three infected classes'
-pall,likelihoods,iterations,rmd = master(times,dat,three_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,three_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,three_i,inits,times,rmd,lab,ax1)
+pall,likelihoods,iterations,rmd = master(times,df,three_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,three_i,inits,times,pars,pnames)
+ax1 = plot_model(df,three_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # model with 4 infection classes
 pars = (1e-6,1e-6,0.2,0.2,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','I3 turnover','lysis rate','burst size']
 pnames_print = ['$\mu$','$\phi$',r'$\tau_1$',r'$\tau_2$',r'$\tau_3$',r'$\lambda$',r'$\beta$']
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'I1 turnover':0.2,
+              'I2 turnover':0.2,
+              'I3 turnover':0.2,
+              'lysis rate':1.0,
+              'burst size':50}
 inits = r_[[dat['hms'][0],0,0,0,0,dat['vms'][0]]]
 lab = 'Four infected classes'
-pall,likelihoods,iterations,rmd = master(times,dat,four_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,four_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,four_i,inits,times,rmd,lab,ax1)
+pall,likelihoods,iterations,rmd = master(times,df,four_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,four_i,inits,times,pars,pnames)
+ax1 = plot_model(df,four_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # model with 5 infection classes
@@ -125,9 +154,17 @@ pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','I3
 pnames_print = ['$\mu$','$\phi$',r'$\tau_1$',r'$\tau_2$',r'$\tau_3$',r'$\tau_4$',r'$\lambda$',r'$\beta$']
 inits = r_[[dat['hms'][0],0,0,0,0,0,dat['vms'][0]]]
 lab = 'Five infected classes'
-pall,likelihoods,iterations,rmd = master(times,dat,five_i,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,lab)
-chi,aic,rsq = get_stats(dat,five_i,inits,times,pars,pnames)
-ax1 = plot_model(dat,five_i,inits,times,rmd,lab,ax1)
+parameters = {'host growth rate':1e-6,
+              'transfer affinity':1e-6,
+              'I1 turnover':0.2,
+              'I2 turnover':0.2,
+              'I3 turnover':0.2,
+              'I4 turnover':0.2,
+              'lysis rate':1.0,
+              'burst size':50}
+pall,likelihoods,iterations,rmd = master(times,df,five_i,inits,parameters,pnames_print,nits,pits,burnin,pdf,lab)
+chi,aic,rsq = get_stats(df,five_i,inits,times,pars,pnames)
+ax1 = plot_model(df,five_i,inits,times,rmd,lab,ax1)
 chis,aics,rsqs = append(chis,chi),append(aics,aic),append(rsqs,rsq)
 
 # total simulation time

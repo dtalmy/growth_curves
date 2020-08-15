@@ -52,20 +52,10 @@ param_init = (1e-6,1e-6,0.2,0.2,0.2,0.2,1.0,50)
 pnames = ['host growth rate','transfer affinity','I1 turnover','I2 turnover','I3 turnover','I4 turnover','lysis rate','burst size']
 
 # run model
-h,v = integrate(dat,model_5infection,inits,times,param_init)
+h,v = integrate(df,five_i,inits,times,param_init)
 
 # plot output
-f,ax = subplots(1,2,figsize=[9,4.5])
-ax[0].errorbar(dat['htimes'],dat['hms'],yerr=dat['hss'])
-ax[1].errorbar(dat['vtimes'],dat['vms'],yerr=dat['vss'])
-ax[0].plot(times,h,label='prior')
-ax[1].plot(times,v)
-ax[0].set_xlabel('Time (days)')
-ax[1].set_xlabel('Time (days)')
-ax[0].set_ylabel('Hosts ml$^{-1}$')
-ax[1].set_ylabel('Viruses ml$^{-1}$')
-ax[0].semilogy()
-ax[1].semilogy()
+f,ax = plot_data(df)
 
 #########################################################
 ########### RUN THE FITTING PROCEDURE                ####
@@ -79,8 +69,9 @@ parameters = {'host growth rate':1e-6,
               'lysis rate':1.0,
               'burst size':50}
 a = time.time()
-pall,likelihoods,iterations = do_fitting(df,model_5infection,inits,times,parameters,nits=1000,pits=100,burnin=500)
-#do_fitting(df,model_5infection,inits,times,parameters,nits=1000,pits=100,burnin=500)
+print(parameters)
+print(inits)
+pall,likelihoods,iterations = do_fitting(df,five_i,inits,times,parameters,nits=1000,pits=100,burnin=500)
 b = time.time()
 print('COMPTIME ',b-a) # print simulation time
 
@@ -89,11 +80,7 @@ print('COMPTIME ',b-a) # print simulation time
 #########################################################
 
 # print some statistics and plot the fitted model
-#rmd,rms = posterior_raw_stats(pall)
-#h,v = integrate(dat,model_5infection,inits,times,rmd)
-#ax[0].plot(times,h,label='fitted')
-#ax[1].plot(times,v)
-#l = ax[0].legend()
-#l.draw_frame(False)
+rmd,rms = posterior_raw_stats(pall)
+plot_model(dat,five_i,inits,times,rmd,'fitted',ax)
 
 show()

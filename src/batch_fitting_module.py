@@ -13,7 +13,7 @@ def zero_i(u,t,ps):
     S,V = u[0],u[1]
     dSdt = mum*S - phi*S*V
     dVdt = beta*phi*S*V - phi*S*V
-    return r_[[dSdt,dVdt]]
+    return np.r_[[dSdt,dVdt]]
 
 # one infected classes
 def one_i(u,t,ps):
@@ -22,7 +22,7 @@ def one_i(u,t,ps):
     dSdt = mum*S - phi*S*V
     dI1dt = phi*S*V - lam*I1
     dVdt = beta*lam*I1 - phi*S*V
-    return r_[[dSdt,dI1dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dVdt]]
 
 # five infected classes
 def two_i(u,t,ps):
@@ -32,7 +32,7 @@ def two_i(u,t,ps):
     dI1dt = phi*S*V - I1/tau1
     dI2dt = I1/tau1 - lam*I2
     dVdt = beta*lam*I2 - phi*S*V
-    return r_[[dSdt,dI1dt,dI2dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dI2dt,dVdt]]
 
 # five infected classes
 def three_i(u,t,ps):
@@ -43,7 +43,7 @@ def three_i(u,t,ps):
     dI2dt = I1/tau1 - I2/tau2
     dI3dt = I2/tau2 - lam*I3
     dVdt = beta*lam*I3 - phi*S*V
-    return r_[[dSdt,dI1dt,dI2dt,dI3dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dI2dt,dI3dt,dVdt]]
 
 # five infected classes
 def four_i(u,t,ps):
@@ -55,10 +55,10 @@ def four_i(u,t,ps):
     dI3dt = I2/tau2 - I3/tau3
     dI4dt = I3/tau3 - lam*I4
     dVdt = beta*lam*I4 - phi*S*V
-    return r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dVdt]]
 
 # five infected classes
-def model_5infection(u,t,ps):
+def five_i(u,t,ps):
     '''
     Computes the derivative of u at t
     
@@ -76,15 +76,17 @@ def model_5infection(u,t,ps):
     dI4dt = I3/tau3 - I4/tau4
     dI5dt = I4/tau4 - lam*I5
     dVdt = beta*lam*I5 - phi*S*V
-    return r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dVdt]]
+    return np.r_[[dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dVdt]]
 
 #########################################################
 ############# MASTER FUNCTION TO DO FITTING AND PLOT ####
 #########################################################
 
-def master(times,dat,func,inits,pars,pnames,pnames_print,nits,pits,burnin,pdf,tit):
+def master(times,dat,func,inits,parameters,pnames_print,nits,pits,burnin,pdf,tit):
+    pnames = tuple(parameters.keys())
+    pars = tuple([parameters[el] for el in parameters])
     h,v = integrate(dat,func,inits,times,pars)
-    pall,likelihoods,iterations = do_fitting(dat,func,inits,times,pars,pnames,nits,pits,burnin)
+    pall,likelihoods,iterations = do_fitting(dat,func,inits,times,parameters,nits,pits,burnin)
     rmd,rms = posterior_raw_stats(pall)
     h,v = integrate(dat,func,inits,times,rmd)
     plot_fitted_all(dat,times,func,inits,rmd,pdf,tit)
@@ -153,21 +155,21 @@ def get_stats(dat,func,inits,times,pars,pnames):
 # calculate Akaiki information criteria
 def get_AIC(dat,h,v,pnames):
     K = len(pnames)
-    AIC = -2*log(exp(-get_chi(dat,h,v))) + 2*K
+    AIC = -2*np.log(np.exp(-get_chi(dat,h,v))) + 2*K
     return AIC
 
 # calculate the rsquared
 def get_rsquared(dat,h,v):
-    ssres = sum((h - dat['hms']) ** 2) \
-        + sum((v - dat['vms']) ** 2)
-    sstot = h.shape[0]*var(dat['hms']) \
-        + v.shape[0]*var(dat['vms'])
+    ssres = sum((h - dat.loc['host']['abundance']) ** 2) \
+        + sum((v - dat.loc['virus']['abundance']) ** 2)
+    sstot = h.shape[0]*np.var(dat.loc['host']['abundance']) \
+        + v.shape[0]*np.var(dat.loc['virus']['abundance'])
     return 1 - ssres / sstot
 
 # calculate adjusted R squared
 def get_adjusted_rsquared(dat,h,v,pars):
     R2 = get_rsquared(dat,h,v)
-    n = dat['hms'].shape[0] + dat['vms'].shape[0]
+    n = dat.loc['host']['abundance'].shape[0] + dat.loc['virus']['abundance'].shape[0]
     p = len(pars)
     adjR2 = 1 - (1-R2)*(n-1)/(n-p-1)
     return adjR2
@@ -235,13 +237,14 @@ def do_fitting(dat,model,inits,times,parameters,nits=1000,pits=100,burnin=500):
         if (it % pits == 0):
             print(it,';', round(chi,2),';', ar/pits)
             ars = np.append(ars, ar/pits)
+            ar = 0.0
     likelihoods = likelihoods[burnin:]
     iterations = iterations[burnin:]
     pall = pall[:,:ic]
     print_posterior_statistics(pall,pnames)
     dfraw = {pnames[i]:pall[i] for i in range(0,len(pnames))}
     df = pd.DataFrame(dfraw)
-    return df,likelihoods,iterations
+    return pall,likelihoods,iterations
 
 # print posterior statistics
 def print_posterior_statistics(pall,pnames):
@@ -286,15 +289,15 @@ def plot_fitted_all(dat,times,func,inits,pars,pdf,tit):
     else:
         ax[0].plot(times,mod[0,:])
     f.suptitle(tit)
-    ax[0].set_ylim(ymin=amin(dat['hms']/3.0))
+    ax[0].set_ylim(ymin=np.amin(dat.loc['host']['abundance']/3.0))
     pdf.savefig(f)
-    close(f)
+    pylab.close(f)
 
 # plot data and initial guess
 def plot_data(dat):
-    f,ax = subplots(1,2,figsize=[9,4.5])
-    ax[0].errorbar(dat['htimes'],dat['hms'],yerr=dat['hss'])
-    ax[1].errorbar(dat['vtimes'],dat['vms'],yerr=dat['vss'])
+    f,ax = pylab.subplots(1,2,figsize=[9,4.5])
+    ax[0].errorbar(dat.loc['host']['time'],dat.loc['host']['abundance'],yerr=dat.loc['host']['uncertainty'])
+    ax[1].errorbar(dat.loc['virus']['time'],dat.loc['virus']['abundance'],yerr=dat.loc['virus']['uncertainty'])
     ax[0].set_xlabel('Time (days)')
     ax[1].set_xlabel('Time (days)')
     ax[0].set_ylabel('Hosts ml$^{-1}$')
@@ -313,17 +316,17 @@ def plot_model(dat,func,inits,times,pars,label,ax):
 # plot posterior distributions
 def plot_posterior_dists(pall,pnames,pdf):
     npars = pall.shape[0]
-    dim = int(ceil(npars**0.5))
-    f,ax = subplots(dim,dim,figsize=[dim*4,dim*4])
+    dim = int(np.ceil(npars**0.5))
+    f,ax = pylab.subplots(dim,dim,figsize=[dim*4,dim*4])
     ax = ax.flatten()
     for a in ax[npars:]:
         a.axis('off')
     for (a,p,i) in zip(ax,pnames,range(npars)):
-        a.hist(log(pall[i,:]),30,density=True)
+        a.hist(np.log(pall[i,:]),30,density=True)
         a.set_xlabel('log('+p+')')
         a.set_ylabel('Probability density')
     f.suptitle('Posterior distributions')
     f.subplots_adjust(hspace=0.25,wspace=0.25)
     pdf.savefig(f)
-    close(f)
+    pylab.close(f)
 
