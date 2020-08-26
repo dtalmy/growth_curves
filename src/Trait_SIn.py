@@ -38,6 +38,7 @@ class SIn():
         self.lam=lam
         self.tau= self.set_tau(tau)
 
+        self.fittings = None
     def get_statevar(self):
         return(self.Istates + 2)
 
@@ -55,6 +56,10 @@ class SIn():
         elif self.Istates > 2:
             t = [str(t) for t in self.tau]
             outstr.append("\ttau = {}".format(', '.join(t)))
+
+        if self.fittings:
+            outstr.append('\nFor fittings, see fittings attribute')
+
         return('\n'.join(outstr))
 
     def __str__(self):
@@ -93,14 +98,7 @@ class SIn():
             taus = None
         return(taus)
     
-    def get_inits(self,host_init=None,virus_init=None):
-        '''Get the inital values for simulation
-        
-        Parameters
-        ----------
-        host_init : int, optional
-            specify inital abundance of host, otherwise, t0 from experimental data will be used
-        virus_init : int, optional
+    def get_inits(self,host_init=None,vioutdat
             specify inital abundance of virus, otherwise, t0 from experimental data will be used
 
         Return
@@ -233,6 +231,9 @@ class SIn():
         pall = np.r_[[np.zeros(nits-burnin) for i in range(npars)]]
         iterations = np.arange(1, nits, 1)
         chi = self.get_chi(h,v)
+        
+        outdat = []
+
         print('a priori error', chi)
         print('iteration; ' 'error; ' 'acceptance ratio')
         for it in iterations:
@@ -245,6 +246,10 @@ class SIn():
                 chi = chinew
                 if it > burnin:  # only store the parameters if you've gone through the burnin period
                     pall[:,ic] = pars
+                    outdat.append(np.append(pars,
+                                            [chi,self.get_adjusted_rsquared(h,v,samples,npars),it]
+                                            )
+                                )
                     ar = ar + 1.0  # acceptance ratio
                     ic = ic + 1  # total count
             else: #if chi gets worse, use old parameters
@@ -257,6 +262,8 @@ class SIn():
         iterations = iterations[burnin:]
         pall = pall[:,:ic]
         #print_posterior_statistics(pall,pnames)
-        dfraw = {pnames[i]:pall[i] for i in range(0,len(pnames))}
-        df = pd.DataFrame(dfraw)
-        return pall,likelihoods,iterations
+        outdat = pd.DataFrame(outdat)
+        outdat.columns = list(pnames)+['chi','adjR2','Iteration']
+        self.fittings=outdat
+        return pall,likelihoods,iterations,outdat
+    
