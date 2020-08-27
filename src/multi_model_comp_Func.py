@@ -60,8 +60,9 @@ def Model_Run(RUN_ID,VALnits,VALpits,VALburnin):
 
     # specify # of iterations
     #nits,pits,burnin=1000000,100000,10000
-    nits,pits,burnin=1000,100,500
-
+    #nits,pits,burnin=1000,100,500
+    nits,pits,burnin=VALnits,VALpits,VALburnin
+    
     # start timer
     a = time.time()
 
