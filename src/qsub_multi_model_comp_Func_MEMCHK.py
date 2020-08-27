@@ -7,7 +7,6 @@ parser.add_argument("RUN_ID")
 parser.add_argument("VALnits")
 parser.add_argument("VALpits")
 parser.add_argument("VALburnin")
-parser.set_defaults(RUN_ID=123456789,VALnits=1000,VALpits=100,VALburnin=500)
 args = parser.parse_args()
 
 tracemalloc.start()
