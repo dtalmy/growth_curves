@@ -56,7 +56,7 @@ def Model_Run(RUN_ID,VALnits,VALpits,VALburnin):
     chis,aics,rsqs=r_[[]],r_[[]],r_[[]]
 
     # master pdf
-    pdf = matplotlib.backends.backend_pdf.PdfPages("../figures/test_selection.pdf")
+    pdf = matplotlib.backends.backend_pdf.PdfPages('../figures/' + RUN_ID + 'test_selection.pdf')
 
     # specify # of iterations
     #nits,pits,burnin=1000000,100000,10000
