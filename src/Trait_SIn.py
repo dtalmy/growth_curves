@@ -97,7 +97,7 @@ class SIn():
         '''
         if self.Istates > 1:
             if isinstance(tau,float):
-                taus = [tau]*self.Istates-1
+                taus = [tau]*(self.Istates-1)
             else:
                 if len(tau) != self.Istates-1:
                     raise Exception("You must have {} taus for {} Infected states, not {}".format(self.Istates-1,
@@ -169,10 +169,10 @@ class SIn():
             numpy array of parameters or dict of parameters
         '''
         ps = [self.mu,self.phi,self.beta]
-        if self.Istates == 1:
+        if self.Istates > 0:
             ps.append(self.lam)
         if self.Istates > 1:
-            ps.append(self.tau)
+            ps.extend(self.tau)
         ps=tuple([np.r_[ps]])
         if asdict:
             mapping = {}
@@ -197,7 +197,7 @@ class SIn():
             else:
                 if 'tau' == p[0:3]:
                     i = int(p[3:])
-                    self.taus[i+1] = parameters[p]
+                    self.taus[i-1] = parameters[p]
 
 
     def integrate(self,inits=None,parameters=None,forshow=True):
