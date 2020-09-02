@@ -22,7 +22,7 @@ def rawstats(pdseries):
 class SIn():
 
     def __init__(self,dataframe, Infection_states=0,
-                mu=1e-6,phi=1e-8,lam = 1.0, beta = 50,tau=0.2):
+                mu=1e-6,phi=1e-8,lam = 1.0, beta = 25,tau=0.2):
         '''
 
         Parameters
@@ -136,7 +136,7 @@ class SIn():
             v = virus_init
         init = [h,v]
         for i in range(0,self.Istates):
-            init.append(0)
+            init.insert(1,0)
         return(np.r_[init])
 
     def get_model(self):
@@ -226,6 +226,7 @@ class SIn():
         else:
             ps = parameters
         mod = odeint(func,inits,self.times,args=ps).T
+
         h,v = np.sum(mod[:-1,:],0),mod[-1,:] #np.sum(mod[:-1,:],0) adds S and all infected states
 
         if forshow==False:
@@ -280,7 +281,7 @@ class SIn():
         fittings
             list of pandas.DataFrame objects with fittings
         
-        ''''
+        '''
         if cores > multiprocessing.cpu_count():
             Warning("More cores specified than avalible, cpu_cores set to maximum avalible\n")
             cores=multiprocessing.cpu_count()

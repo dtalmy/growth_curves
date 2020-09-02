@@ -20,7 +20,7 @@ def one_i(y,t,ps):
 # five infected classes
 def two_i(y,t,ps):
     mum,phi,beta,lam,tau1=ps[0],ps[1],ps[2],ps[3],ps[4]
-    S,V,I1,I2 = y[0],y[1],y[2],y[3]
+    S,I1,I2,V = y[0],y[1],y[2],y[3]
     dSdt = mum*S - phi*S*V
     dI1dt = phi*S*V - I1/tau1
     dI2dt = I1/tau1 - lam*I2
@@ -30,7 +30,7 @@ def two_i(y,t,ps):
 # five infected classes
 def three_i(y,t,ps):
     mum,phi,beta,tau1,tau2,lam=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5]
-    S,V,I1,I2,I3 = y[0],y[1],y[2],y[3],y[4]
+    S,I1,I2,I3,V = y[0],y[1],y[2],y[3],y[4]
     dSdt = mum*S - phi*S*V
     dI1dt = phi*S*V - I1/tau1
     dI2dt = I1/tau1 - I2/tau2
@@ -41,7 +41,7 @@ def three_i(y,t,ps):
 # five infected classes
 def four_i(y,t,ps):
     mum,phi,beta,lam,tau1,tau2,tau3=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5],ps[6]
-    S,V,I1,I2,I3,I4 = y[0],y[1],y[2],y[3],y[4],y[5]
+    S,I1,I2,I3,I4,V = y[0],y[1],y[2],y[3],y[4],y[5]
     dSdt = mum*S - phi*S*V
     dI1dt = phi*S*V - I1/tau1
     dI2dt = I1/tau1 - I2/tau2
@@ -53,7 +53,7 @@ def four_i(y,t,ps):
 # five infected classes
 def five_i(y,t,ps):
     mum,phi,beta,lam,tau1,tau2,tau3,tau4=ps[0],ps[1],ps[2],ps[3],ps[4],ps[5],ps[6],ps[7]
-    S,V,I1,I2,I3,I4,I5 = y[0],y[1],y[2],y[3],y[4],y[5],y[6]
+    S,I1,I2,I3,I4,I5,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6]
     dSdt = mum*S - phi*S*V
     dI1dt = phi*S*V - I1/tau1
     dI2dt = I1/tau1 - I2/tau2
