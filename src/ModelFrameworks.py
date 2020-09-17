@@ -6,7 +6,7 @@ import multiprocessing,pylab
 from scipy.stats import truncnorm
 from pyDOE2 import lhs
 
-from .Infection_Models import zero_i,one_i,two_i,three_i,four_i,five_i
+from .SnI_Models import zero_i,one_i,two_i,three_i,four_i,five_i
 
 def pos_norm(loc,scale):
     '''normal distribution for positive values only'''
@@ -33,7 +33,6 @@ def get_AIC(parcount,chi):
     AIC = -2*np.log(np.exp(-chi)) + 2*K
     return(AIC)
 
-
 def Chain_worker(SImod,nits,burnin):
     '''Function called by pool for parallized fitting'''
     posterior = SImod._MarkovChain(nits,burnin,False)
@@ -46,14 +45,17 @@ def Integrate_worker(SImod,parameters):
     ps.append(chi)
     return(ps)
 
-
 #TODO
 #should all beta be forced to ints?
 #investigate optimal chain number and iteration length
-class SIn():
+class SnI():
 
     def __init__(self,dataframe, Infection_states=0,mu=1e-06,phi=1e-08,beta=25,lam=1,tau=.2,**kwargs):
         '''
+        The SnI (Susceptible n-Infected) class acts a framework to facilitate and expedite the analysis
+         of viral host interactions. Specifically, this class uses a Markov Chain Monte Carlo (MCMC) 
+         implementation to fit and generate posterior distributions of those parameters. Several 
+         functions have been included to provide arguments for scipy.integrate.odeint
 
         Parameters
         ----------
@@ -63,7 +65,8 @@ class SIn():
             Number of infected states of host
         '''
         
-        self.df = dataframe.sort_values(by='time')
+
+        self.df = self._df_check(dataframe)
 
         #time steps for numerical integration
         days=max(np.amax(self.df.loc['virus']['time']),np.amax(self.df.loc['host']['time']))
@@ -88,6 +91,29 @@ class SIn():
     def get_pnames(self):
         '''returns the names of the variables used in the current model'''
         return(self._pnames[0:self.Istates+3])
+
+    def _df_check(self,dataframe):
+        #Error checking for the dataframe
+        indicies = set(dataframe.index)
+        needed_indices = set(['virus','host'])
+        cols = set(dataframe.columns)
+        needed_cols = set(['abundance', 'time', 'uncertainty'])
+        if dataframe.index.name != 'organism':
+            raise Exception("Error, the dataframe is not indexed by organism")
+
+        if needed_indices - indicies:
+            raise Exception('"{}" must be included in the dataframe index'.format(', '.join(needed_indices - indicies)))
+
+        if needed_cols - cols:
+            raise Exception('"{}" must be included in the dataframe index'.format(', '.join(needed_cols - cols)))
+
+        if indicies - needed_indices:
+            raise Warning('"{}" are unsupported indices and will be ignored'.format(', '.join(indicies - needed_indices)))
+        if cols - needed_cols:
+            raise Warning('"{}" are unsupported columns and will be ignored'.format(', '.join(cols - needed_cols)))
+
+        return(dataframe.sort_values(by='time'))
+    
 
     def __repr__(self):
         '''pretty printing'''
@@ -222,7 +248,6 @@ class SIn():
 
         return(pdf)
 
-
     def integrate(self,inits=None,parameters=None,forshow=True):
         '''allows option to return model solutions at sample times
 
@@ -250,6 +275,10 @@ class SIn():
             ps = parameters
         mod = odeint(func,inits,self.times,args=ps).T
 
+        #We need to test if any of the state variables went negative. If they did, return nans to indicate failed euler integration
+        if not np.all(mod[:,-1] > 0):
+            mod[:] = np.nan
+        
         h,v = np.sum(mod[:-1,:],0),mod[-1,:] #np.sum(mod[:-1,:],0) adds S and all infected states
 
         if forshow==False:
@@ -265,7 +294,6 @@ class SIn():
                     (np.log(1.0+self._vu**2.0/self._va**2.0)**0.5 ** 2)
                     )
         return(chi)
-
 
     def get_rsquared(self,h,v):
         '''calculate R^2'''
@@ -283,7 +311,6 @@ class SIn():
         p = parcount
         adjR2 = 1 - (1-R2)*(n-1)/(n-p-1)
         return adjR2
-
 
     def _MarkovChain(self,nits=1000,burnin=None,print_progress=True):
         '''allows option to return model solutions at sample times
@@ -402,8 +429,9 @@ class SIn():
             list of outputs from func
 
         '''
-
+        print("Sampling with a Latin Hypercube scheme...", end='\r')
         inits = self._lhs_samples(samples,**kwargs)
+        print("Sampling with a Latin Hypercube sampling scheme...[DONE]")
         #packaging SIn instances with different parameters from LHS sampling
         args = [[self,tuple((tuple(ps),))] for ps in inits[self.get_pnames()].itertuples(index=False)]
         if cpu_cores ==1:
@@ -417,14 +445,15 @@ class SIn():
         df.dropna(inplace=True)
         return(df)
 
-
     def MCMC(self,chain_inits=None,iterations=1000,cpu_cores=1,print_report=True):
-        '''Launches Markov chain Monte Carlo
+        '''Launches Markov Chain Monte Carlo
 
         Parameters
         ----------
         chain_inits : list of dicts or dataframe
-            list of dictionaries or dataframe with parameter values
+            list of dictionaries mapping parameters to their values or dataframe with parameter values as columns. Values
+            will be used as the intial values for the Markov Chains, where the length of the list/dataframe implies the
+            number of chains to start
         cpu_cores : int
             number of cores used in fitting, Default = 1
         print_report : bool
@@ -441,7 +470,7 @@ class SIn():
             chain_inits= [row.to_dict() for i,row in chain_inits[self.get_pnames()].iterrows()]
 
         #package SIn with parameters set and the iterations
-        jobs = [[SIn(self.df,Infection_states=self.Istates,**inits),iterations,int(iterations/2)] for inits in chain_inits]
+        jobs = [[SnI(self.df,Infection_states=self.Istates,**inits),iterations,int(iterations/2)] for inits in chain_inits]
 
         if cpu_cores == 1:
             posterior_list = []
@@ -455,6 +484,7 @@ class SIn():
         for i in range(0,len(posterior_list)):
             posterior_list[i]['chain#']=i
         posterior = pd.concat(posterior_list)
+        posterior.reset_index(drop=True,inplace=True)
         p_median= {}
         report=["\nFitting Report\n==============="]
         for col in list(self.get_pnames()):
@@ -469,7 +499,18 @@ class SIn():
         
         return(posterior)
 
-    def plot(self):
+    def plot(self,**kwargs):
+        if kwargs:
+            ps = list()
+            for el in self.get_pnames():
+                if el in kwargs:
+                    ps.append(kwargs[el])
+                else:
+                    ps.append(self.parameters[el])
+            ps = tuple([tuple(ps),])
+            h,v=self.integrate(parameters=ps)
+        else:
+            h,v=self.integrate()
         f,ax = plt.subplots(1,2,figsize=[9,4.5])
         ax[0].errorbar(self.df.loc['host']['time'],
                     self.df.loc['host']['abundance'],
@@ -483,8 +524,10 @@ class SIn():
         ax[1].set_ylabel('Viruses ml$^{-1}$')
         ax[0].semilogy()
         ax[1].semilogy()
-        h,v=self.integrate()
         label = "{} infected classes".format(self.Istates)
-        ax[0].plot(self.times,h,label=label)
-        ax[1].plot(self.times,v)
+        if not np.isnan(np.sum(h)) and not np.isnan(np.sum(v)):
+            ax[0].plot(self.times,h,label=label)
+            ax[1].plot(self.times,v)
+        else:
+            print("Unable to print model preditions, integration failed")
         return(f,ax)
