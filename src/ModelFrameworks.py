@@ -27,12 +27,6 @@ def rawstats(pdseries):
     std = ((np.exp(log_std**2)-1)*np.exp(2*log_mean+log_std**2.0))**0.5
     return(median,std)
 
-def get_AIC(parcount,chi):
-    '''calcualte AIC for the model fit'''
-    K = parcount
-    AIC = -2*np.log(np.exp(-chi)) + 2*K
-    return(AIC)
-
 def Chain_worker(SImod,nits,burnin):
     '''Function called by pool for parallized fitting'''
     posterior = SImod._MarkovChain(nits,burnin,False)
@@ -80,10 +74,7 @@ class SnI():
         self._hu = np.array(self.df.loc['host']['uncertainty'])
         self._va = np.array(self.df.loc['virus']['abundance'])
         self._vu = np.array(self.df.loc['virus']['uncertainty'])
-
-
-        self._samples = samples = self.df.loc['host']['abundance'].shape[0] + self.df.loc['virus']['abundance'].shape[0]
-
+        
         #parameter assignment
         #pnames is referenced by multilpe functions
         self._pnames = ['mu','phi','beta','lam','tau1','tau2','tau3','tau4','tau5']
@@ -91,6 +82,9 @@ class SnI():
         self.Istates=Infection_states
         self.set_parameters(mu=mu,phi=phi,beta=beta,lam=lam,tau=.2,**kwargs)
         
+        self._samples = self.df.loc['host']['abundance'].shape[0] + self.df.loc['virus']['abundance'].shape[0]
+        
+
     def get_pnames(self):
         '''returns the names of the variables used in the current model'''
         return(self._pnames[0:self.Istates+3])
@@ -326,13 +320,29 @@ class SnI():
         return 1 - ssres / sstot
 
 
-    def get_adjusted_rsquared(self,h,v,samples,parcount):
+    def get_adjusted_rsquared(self,h,v):
         '''calculate adjusted R^2'''
         R2 = self.get_rsquared(h,v)
-        n = samples
-        p = parcount
+        n = self._samples
+        p = len(self.get_pnames())
         adjR2 = 1 - (1-R2)*(n-1)/(n-p-1)
         return adjR2
+
+    def get_AIC(self,chi):
+        '''calcualte AIC for the model fit'''
+        K = len(self.get_pnames())
+        AIC = -2*np.log(np.exp(-chi)) + 2*K
+        return(AIC)
+
+    def get_fitstats(self,h=None,v=None):
+        '''return dictionary of adjusted R-squared, Chi, and AIC of current parameters'''
+        fs = {}
+        if isinstance(h,type(None)) or isinstance(v,type(None)):
+            h,v = self.integrate(forshow=False)
+        fs['Chi'] = self.get_chi(h,v)
+        fs['AdjR^2'] = self.get_adjusted_rsquared(h,v)
+        fs['AIC'] = self.get_AIC(fs['Chi'])
+        return(fs)
 
     def _MarkovChain(self,nits=1000,burnin=None,print_progress=True):
         '''allows option to return model solutions at sample times
@@ -353,7 +363,6 @@ class SnI():
         pnames = self.get_pnames()
         pars = self.get_parameters()[0]
         npars = len(pars)
-        samples = self.df.loc['host']['abundance'].shape[0] + self.df.loc['virus']['abundance'].shape[0]
         h,v = self.integrate(forshow=False)
         ar,ic = 0.0,0
         ars, likelihoods = np.r_[[]], np.r_[[]]
@@ -381,7 +390,7 @@ class SnI():
                 chi = chinew
                 if it > burnin:  # only store the parameters if you've gone through the burnin period
                     pall.append(np.append(pars,
-                                            [chi,self.get_adjusted_rsquared(h,v,samples,npars),it]
+                                            [chi,self.get_adjusted_rsquared(h,v,),it]
                                             )
                                 )
                     ar = ar + 1.0  # acceptance ratio
@@ -397,6 +406,8 @@ class SnI():
         #pall = pall[:,:ic]
         #print_posterior_statistics(pall,pnames)
         df = pd.DataFrame(pall)
+        if df.empty:
+            df = pd.DataFrame([[np.nan] * (len(pnames)+3)])
         df.columns = list(pnames)+['chi','adjR2','Iteration']
         return df
 
@@ -427,7 +438,7 @@ class SnI():
             results = pool.starmap(func,args)
         pool.join()
         pool.close()
-        print("Starting {} processes with {} cores\t[DONE]".format(len(args),cores),end='\r')
+        print("Starting {} processes with {} cores\t[DONE]".format(len(args),cores))
         return(results)
 
     def search_inits(self,samples=1000,cpu_cores=1,**kwargs):
@@ -452,9 +463,8 @@ class SnI():
             list of outputs from func
 
         '''
-        print("Sampling with a Latin Hypercube scheme...", end='\r')
+        print("Sampling with a Latin Hypercube scheme")
         inits = self._lhs_samples(samples,**kwargs)
-        print("Sampling with a Latin Hypercube sampling scheme...[DONE]")
         #packaging SIn instances with different parameters from LHS sampling
         args = [[self,tuple((tuple(ps),))] for ps in inits[self.get_pnames()].itertuples(index=False)]
         if cpu_cores ==1:
@@ -512,17 +522,16 @@ class SnI():
         report=["\nFitting Report\n==============="]
         for col in list(self.get_pnames()):
             median,std = rawstats(posterior[col])
-            report.append("parameter: {}\n\tmedian = {:0.3e},Standard deviation = {:0.3e}".format(col,median,std))
+            report.append("parameter: {}\n\tmedian = {:0.3e}, Standard deviation = {:0.3e}".format(col,median,std))
             p_median[col]=median
         
         self.set_parameters(**p_median) #reset params with new fits
         
         if print_report:
             h,v = self.integrate(forshow=False)
-            median_chi = self.get_chi(h,v)
-            median_adjR2 = self.get_adjusted_rsquared(h,v,self._samples,len(self.get_pnames()))
-            report.append("Median parameter fit:")
-            report.append("\tChi = {},\tAdjusted R-squred = {}".format(median_chi,median_adjR2))
+            fs = self.get_fitstats(h,v)
+            report.append("Median parameter fit stats:")
+            report.append("\tChi = {:0.3e}\n\tAdjusted R-squared = {:0.3e}\n\tAIC = {:0.3e}".format(fs['Chi'],fs['AdjR^2'],fs['AIC']))
             print('\n'.join(report))
         
         return(posterior)
