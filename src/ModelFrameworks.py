@@ -81,6 +81,9 @@ class SnI():
         self._va = np.array(self.df.loc['virus']['abundance'])
         self._vu = np.array(self.df.loc['virus']['uncertainty'])
 
+
+        self._samples = samples = self.df.loc['host']['abundance'].shape[0] + self.df.loc['virus']['abundance'].shape[0]
+
         #parameter assignment
         #pnames is referenced by multilpe functions
         self._pnames = ['mu','phi','beta','lam','tau1','tau2','tau3','tau4','tau5']
@@ -91,6 +94,14 @@ class SnI():
     def get_pnames(self):
         '''returns the names of the variables used in the current model'''
         return(self._pnames[0:self.Istates+3])
+
+    def _taus_included(self):
+        '''return list of taus included in model'''
+        if len(self.get_pnames()) > 4:
+            return(self.get_pnames()[4:])
+        else:
+            return(list())
+        
 
     def _df_check(self,dataframe):
         #Error checking for the dataframe
@@ -227,10 +238,21 @@ class SnI():
         **kwargs
             keyword arguments, where key words are mapped to a tuple of mean, sigma, and bool for if the parameter needs a tinylog transformation
         '''
-        lhd = lhs(len(kwargs), samples=samples)
+
+        #we need to add a special case for if the user passes tau, as it implies
+        #all taus should have the same distribution range
+        if 'tau' in kwargs:
+            dist = kwargs.pop('tau')
+            for el in self._taus_included():
+                if el not in kwargs:
+                    kwargs[el] = dist
+        #lets rebuild kwargs with parameters only needed for the explicit model
+        ps = {el:kwargs[el] for el in self.get_pnames()}
+
+        lhd = lhs(len(ps), samples=samples)
         p_samples = {}
-        for i,el in enumerate(kwargs):
-            mu,sigma,tinylog=kwargs[el]
+        for i,el in enumerate(ps):
+            mu,sigma,tinylog=ps[el]
             if tinylog:
                 p_samples[el] = np.power(10,-(pos_norm(loc=mu,scale=sigma).ppf(lhd[:,i])))
             else:
@@ -400,11 +422,12 @@ class SnI():
         if cores > multiprocessing.cpu_count():
             Warning("More cores specified than avalible, cpu_cores set to maximum avalible\n")
             cores=multiprocessing.cpu_count()
-        print("Starting {} processes with {} cores".format(len(args),cores))
+        print("Starting {} processes with {} cores".format(len(args),cores),end='\r')
         with multiprocessing.Pool(processes=cores) as pool:
             results = pool.starmap(func,args)
         pool.join()
         pool.close()
+        print("Starting {} processes with {} cores\t[DONE]".format(len(args),cores),end='\r')
         return(results)
 
     def search_inits(self,samples=1000,cpu_cores=1,**kwargs):
@@ -495,6 +518,11 @@ class SnI():
         self.set_parameters(**p_median) #reset params with new fits
         
         if print_report:
+            h,v = self.integrate(forshow=False)
+            median_chi = self.get_chi(h,v)
+            median_adjR2 = self.get_adjusted_rsquared(h,v,self._samples,len(self.get_pnames()))
+            report.append("Median parameter fit:")
+            report.append("\tChi = {},\tAdjusted R-squred = {}".format(median_chi,median_adjR2))
             print('\n'.join(report))
         
         return(posterior)
