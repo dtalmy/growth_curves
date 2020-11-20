@@ -137,10 +137,10 @@ def get_chi(dat,hnt,vnt):
     chi = (obs - expect)^2 / sqrt(log(1+ uncertain ^2 / expected^2))^2
     '''
     chi = sum((np.log(hnt) - np.log(dat.loc['host']['abundance'])) ** 2 / \
-                (np.log(1.0+dat.loc['host']['uncertainty'].astype(float)**2.0/dat.loc['host']['abundance']**2.0)**0.5 ** 2)
+                ((np.log(1.0+dat.loc['host']['uncertainty'].astype(float)**2.0/dat.loc['host']['abundance']**2.0)**0.5) ** 2)
                 ) \
         + sum((np.log(vnt) - np.log(dat.loc['virus']['abundance'])) ** 2 / \
-                (np.log(1.0+dat.loc['virus']['uncertainty'].astype(float)**2.0/dat.loc['virus']['abundance']**2.0)**0.5 ** 2)
+                ((np.log(1.0+dat.loc['virus']['uncertainty'].astype(float)**2.0/dat.loc['virus']['abundance']**2.0)**0.5) ** 2)
                 )
     return chi
 

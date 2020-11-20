@@ -6,7 +6,7 @@ import multiprocessing,pylab
 from scipy.stats import truncnorm
 from pyDOE2 import lhs
 
-from .SnI_Models import zero_i,one_i,two_i,three_i,four_i,five_i
+from SnI_Models import zero_i,one_i,two_i,three_i,four_i,five_i
 
 def pos_norm(loc,scale):
     '''normal distribution for positive values only'''
@@ -304,10 +304,10 @@ class SnI():
     def get_chi(self,h,v):
         '''calculate chi values from predicted values'''
         chi = sum((np.log(h) - np.log(self._ha)) ** 2 / \
-                    (np.log(1.0+self._hu**2.0/self._ha**2.0)**0.5 ** 2)
+                    ((np.log(1.0+self._hu**2.0/self._ha**2.0)**0.5) ** 2)
                     ) \
             + sum((np.log(v) - np.log(self._va)) ** 2 / \
-                    (np.log(1.0+self._vu**2.0/self._va**2.0)**0.5 ** 2)
+                    ((np.log(1.0+self._vu**2.0/self._va**2.0)**0.5) ** 2)
                     )
         return(chi)
 
