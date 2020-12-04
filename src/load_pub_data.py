@@ -16,7 +16,7 @@ import glob
 import os
 import math
 import matplotlib.backends.backend_pdf
-from batch_fitting_class import *
+#from batch_fitting_class import *
 
 #########################################################
 ################## DATA PREP ############################
@@ -30,7 +30,7 @@ Allfiles = glob.glob(path+'*.txt') # all files
 files = glob.glob(path+'[!Std]*txt') # NOT standard deviations
 stddevfiles = glob.glob(path+'StdDev*') # standard deviations
 
-# read in the data
+# function to retreive data from txt files
 def read_txt_file(file):
     filename = file
     if 'StdDev' not in str(filename): 
@@ -80,6 +80,7 @@ dict_df = dict.fromkeys(file_types)
 
 exp_set_all = []
 vals_all = []
+all_dat = []
 
 ############################################
 
@@ -106,7 +107,6 @@ for tag in file_types:
     vabund = np.asarray(virus_df[['abundance']]).ravel()
     vstd = virus_df[['stddev']]
     vstd = np.asarray(virus_df[['stddev']]).ravel()
-    
     if "NA" in hstd and "NA" in vstd: 
         exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund}
     elif "NA" in hstd: 
@@ -114,7 +114,14 @@ for tag in file_types:
     elif "NA" in vstd: 
         exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd}
     else: 
-        exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd,'vss':vstd} 
+        exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd,'vss':vstd}
+        hdat = pd.DataFrame({'abundance':habund.astype(float),'time':htimes,'sigma':hstd.astype(float)})
+        vdat = pd.DataFrame({'abundance':vabund.astype(float),'time':vtimes,'sigma':vstd.astype(float)})
+        hdat = hdat.assign(organism='S')
+        vdat = vdat.assign(organism='V')
+        full_tseries = pd.concat((hdat,vdat))
+        full_tseries = full_tseries.assign(paper=tag)
+        all_dat.append(full_tseries)
     val = str(tag)
     exp_set_all.append(exp_set.copy())
     vals_all.append(val)
