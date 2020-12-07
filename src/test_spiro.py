@@ -4,12 +4,10 @@ import os, sys
 sys.path.append('/media/psf/Home/Documents/code/spiro/ODElib')
 import ODElib
 
-# experiment with a single dataset
-
 zeroI=ODElib.ModelFramework(ODE=zero_i,
                           parameter_names=['mu','phi','beta'],
                           state_names = ['S','V'],
-                          dataframe=all_dat[4],
+                          dataframe=all_dat[3],
                           mu = 1e-6,
                           phi = 1e-8,
                           beta = 40,
