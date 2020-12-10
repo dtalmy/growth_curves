@@ -17,7 +17,7 @@ zeroI=ODElib.ModelFramework(ODE=zero_i,
 f1,ax1=zeroI.plot()
 
 posteriors = zeroI.MCMC(chain_inits = 32,
-                        iterations_per_chain=10000,
+                        iterations_per_chain=100000,
                         cpu_cores=8
                         )
 f2,ax2=zeroI.plot()
