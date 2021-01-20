@@ -115,14 +115,15 @@ for tag in file_types:
         exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd}
     else: 
         exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd,'vss':vstd}
-        hdat = pd.DataFrame({'abundance':habund.astype(float),'time':htimes,'sigma':hstd.astype(float)})
-        vdat = pd.DataFrame({'abundance':vabund.astype(float),'time':vtimes,'sigma':vstd.astype(float)})
-        hdat = hdat.assign(organism='S')
-        vdat = vdat.assign(organism='V')
-        full_tseries = pd.concat((hdat,vdat))
-        full_tseries = full_tseries.assign(paper=tag)
-        all_dat.append(full_tseries)
+    # davids temporary hack just to format correctly for ODElib #
+    hdat = pd.DataFrame({'abundance':habund.astype(float),'time':htimes,'sigma':habund.astype(float)/10.0})
+    vdat = pd.DataFrame({'abundance':vabund.astype(float),'time':vtimes,'sigma':vabund.astype(float)/10.0})
+    hdat = hdat.assign(organism='S')
+    vdat = vdat.assign(organism='V')
+    full_tseries = pd.concat((hdat,vdat))
+    full_tseries = full_tseries.assign(paper=tag)
+    all_dat.append(full_tseries)
     val = str(tag)
     exp_set_all.append(exp_set.copy())
     vals_all.append(val)
-
+    # end davids temporary formatting hack #
