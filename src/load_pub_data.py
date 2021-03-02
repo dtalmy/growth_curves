@@ -116,8 +116,8 @@ for tag in file_types:
     else: 
         exp_set= {'htimes': htimes,'vtimes':vtimes,'hms':habund,'vms':vabund,'hss':hstd,'vss':vstd}
     # davids temporary hack just to format correctly for ODElib #
-    hdat = pd.DataFrame({'abundance':habund.astype(float),'time':htimes,'sigma':habund.astype(float)/10.0})
-    vdat = pd.DataFrame({'abundance':vabund.astype(float),'time':vtimes,'sigma':vabund.astype(float)/10.0})
+    hdat = pd.DataFrame({'abundance':habund.astype(float),'time':htimes,'sigma':habund.astype(float)/2.0})
+    vdat = pd.DataFrame({'abundance':vabund.astype(float),'time':vtimes,'sigma':vabund.astype(float)/2.0})
     hdat = hdat.assign(organism='S')
     vdat = vdat.assign(organism='V')
     full_tseries = pd.concat((hdat,vdat))
