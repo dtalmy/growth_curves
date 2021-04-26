@@ -1,0 +1,7 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Matt_Aug12_2016/P/MaatAug-12-2016_Fig3_virus_detailed.PNG Friday 14-Jun-2019 3:04:49 PM
+0., 8.1721e6
+2.9952, 7.9353e6
+5.9994, 7.3036e6
+8.99, 8.9222e6
+11.9851, 2.1042e7
+14.9849, 4.2558e7

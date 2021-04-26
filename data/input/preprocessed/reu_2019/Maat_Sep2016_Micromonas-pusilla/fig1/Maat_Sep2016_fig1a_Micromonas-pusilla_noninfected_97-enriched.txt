@@ -1,0 +1,10 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_Sep2016/Maat_Sep2016_fig1_noninfected.jpg Thursday 13-Jun-2019 9:42:06 AM
+-0.0386, 9.2896e5
+2.9344, 8.4433e5
+5.9459, 9.8021e5
+11.9304, 1.1347e6
+17.9923, 1.6739e6
+23.9382, 2.0254e6
+30.0, 2.3769e6
+36.0232, 2.9208e6
+47.9537, 4.276e6

@@ -1,0 +1,14 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Brussaard_2001_Micromonas-pusilla/Brussaard_2001_Micromonas-pusilla_SDs/Screen Shot 2019-06-20 at 11.54.30 AM.png Thursday 20-Jun-2019 12:01:10 PM
+0.7896, 1.7951e7
+4.7707, 1.7914e7
+8.8395, 2.0436e7
+12.7309, 1.8437e7
+16.3154, 2.0461e7
+24.8984, 2.198e7
+28.8385, 2.0414e7
+32.8058, 1.9445e7
+36.752, 1.8011e7
+40.1923, 1.7509e7
+48.3007, 9.8866e6
+52.1697, 6.1257e6
+56.0946, 4.2264e6

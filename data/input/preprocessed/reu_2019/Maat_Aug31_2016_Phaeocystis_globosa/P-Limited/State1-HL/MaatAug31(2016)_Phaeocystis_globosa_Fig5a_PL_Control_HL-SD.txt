@@ -1,0 +1,10 @@
+#DataThief C:\Users\Yong Chun\Desktop\NIMBioS SRE 2019\NIMBioS Project\Data Screenshots\MaatAug31(2016)_Phaeocystis_globosa_Pics\MaatAug31(2016)_Phaeocystis_globosa_Fig5-PL_Pics\MaatAug31(2016)_Phaeocystis_globosa_Fig5a_SuscHostPL_Pic.PNG Thursday 27-Jun-2019 9:18:22 AM
+0.0752, 3.0498e5
+6.0108, 3.4676e5
+12.0578, 3.2273e5
+18.0476, 3.0592e5
+24.0406, 3.453e5
+30.0908, 3.7584e5
+36.0223, 3.478e5
+48.0636, 3.8401e5
+71.9691, 3.8501e5

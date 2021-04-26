@@ -1,0 +1,7 @@
+#DataThief /Users/aaronlin/Downloads/Screen Shot 2019-06-13 at 5.16.28 PM.png Thursday 13-Jun-2019 6:00:03 PM
+0.0496, 1.2588e6
+12.0078, 1.225e6
+18.0853, 7.5386e5
+24.0761, 3.2825e5
+30.0635, 20409.9026
+36.0996, 543.0526

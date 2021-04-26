@@ -1,0 +1,11 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_Sep2016/fig4/Maat_Sep2016_fig4.jpg Thursday 13-Jun-2019 3:27:58 PM
+0., 1.4205e7
+6.0472, 1.1209e7
+11.9403, 2.2251e7
+17.9875, 7.0726e7
+24.0347, 1.1101e8
+30.0433, 1.2423e8
+35.975, 1.3143e8
+47.9923, 1.6086e8
+59.971, 1.5905e8
+71.9884, 1.92e8

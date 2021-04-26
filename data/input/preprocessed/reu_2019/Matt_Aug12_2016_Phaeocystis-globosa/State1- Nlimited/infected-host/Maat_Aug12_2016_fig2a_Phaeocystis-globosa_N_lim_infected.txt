@@ -1,0 +1,11 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Matt_Aug12_2016/fig2/Screen Shot 2019-06-13 at 4.04.18 PM.png Thursday 13-Jun-2019 4:40:29 PM
+0., 2.9307e5
+5.972, 3.087e5
+12.0049, 2.7111e5
+18.0073, 2.6436e5
+24.0402, 2.6056e5
+30.0427, 2.3775e5
+36.0451, 2.0988e5
+48.0195, 1.3725e5
+72.0597, 25337.8378
+96.0085, 9712.8378

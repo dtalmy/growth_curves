@@ -1,0 +1,10 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Matt_Aug12_2016/Micromonas pusilla/MaatAug-12-2016_Fig1_Micromonas-pusilla_host.PNG Thursday 20-Jun-2019 10:58:20 AM
+0.0575, 1.3745e6
+6.092, 1.5189e6
+12.069, 1.738e6
+18.046, 9.9602e5
+24.023, 6.2251e5
+30.0575, 3.6355e5
+36.092, 1.9422e5
+48.046, 44820.717
+72.069, 19920.3187

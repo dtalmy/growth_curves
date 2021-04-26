@@ -1,0 +1,8 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_Aug2016/fig5/Maat_2016_fig5_MpV_plimited_detailed.png Wednesday 12-Jun-2019 4:12:05 PM
+0., 3.6527e6
+3.0, 4.1924e6
+6.0067, 5.3682e6
+8.9933, 4.4815e6
+12.0, 3.8358e6
+14.98, 5.6766e6
+20.9933, 1.3811e7

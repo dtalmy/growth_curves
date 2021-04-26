@@ -1,0 +1,9 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_31Aug2016_MPusilla/Maat_31Aug2016_MPusilla_P-replete/fmars-03-00160-g002.jpg Thursday 27-Jun-2019 11:27:04 AM
+0.0531, 1.0119e6
+6.0357, 1.1012e6
+12.0165, 1.6518e6
+18.0552, 1.9792e6
+24.0358, 2.5744e6
+30.0176, 2.8571e6
+35.9978, 3.5863e6
+47.955, 5.8333e6

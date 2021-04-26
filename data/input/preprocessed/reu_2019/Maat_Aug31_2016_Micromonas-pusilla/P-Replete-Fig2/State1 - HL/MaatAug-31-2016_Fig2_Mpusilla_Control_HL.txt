@@ -1,0 +1,8 @@
+#DataThief C:\Users\LFiet\Dropbox\REU19Dropbox\MaatAug2016_Fig2.jpg Thursday 13-Jun-2019 11:57:22 AM
+0.0524, 1.2054e6
+12.0143, 2.2321e6
+18.0512, 3.0208e6
+24.0314, 3.7351e6
+29.9527, 4.9554e6
+36.0466, 5.744e6
+47.9414, 9.4345e6

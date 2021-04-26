@@ -1,0 +1,7 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_31Aug2016_Phaeocystis_globosa/M.Pusilla/Maat_31Aug_pusilla.jpg Tuesday 18-Jun-2019 9:23:13 AM
+0., 1.3413e6
+12.0228, 1.2956e6
+18.0057, 8.1548e5
+23.9886, 3.8095e5
+30.0285, 31746.0317
+36.5812, 9920.6349

@@ -1,0 +1,13 @@
+#DataThief C:\Users\Yong Chun\Desktop\NIMBioS SRE 2019\NIMBioS Project\Data Screenshots\Steenhauer'16_Cylindrospermopsis_raciborskii_Pics\Steenhauer'16_Cylindrospermopsis_raciborskii_HostLightTemp_Pic.PNG Thursday 27-Jun-2019 9:30:16 AM
+0.0222, 13896.3343
+16.1436, 37875.1943
+20.185, 85086.8298
+24.1821, 59983.4006
+28.2235, 70497.7884
+32.265, 56187.5675
+36.262, 1.0529e5
+40.3035, 60756.6481
+44.3005, 56430.337
+48.2976, 1.487e5
+52.4722, 1.9349e5
+56.5137, 1.9375e5

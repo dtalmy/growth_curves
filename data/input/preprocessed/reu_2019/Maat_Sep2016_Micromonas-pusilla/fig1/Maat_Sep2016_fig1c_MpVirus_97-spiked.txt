@@ -1,0 +1,11 @@
+#DataThief /Users/margaretknight/Documents/REU/NIMBioS/Data/Maat_Sep2016/fiw136fig1full.jpg Thursday 13-Jun-2019 11:49:19 AM
+1.2963e-4, 1.1745e6
+5.9878, 2.8012e6
+11.9758, 8.1863e6
+18.0054, 4.035e7
+23.9982, 8.8252e7
+30.0296, 1.3662e8
+36.0176, 1.4154e8
+45.9861, 1.6242e8
+60.0073, 1.5392e8
+72.0217, 1.614e8

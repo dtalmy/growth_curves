@@ -1,0 +1,6 @@
+#DataThief C:\Users\LFiet\Dropbox\REU19Dropbox\Maat2017_Fig3.png Wednesday 12-Jun-2019 1:26:33 PM
+-0.0489, 2.6002e5
+23.9122, 4.9732e5
+51.1816, 1.0811e6
+75.1522, 2.2389e6
+99.1317, 4.2574e6

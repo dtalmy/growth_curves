@@ -1,0 +1,10 @@
+#DataThief C:\Users\Yong Chun\Desktop\NIMBioS SRE 2019\NIMBioS Project\Data Screenshots\MaatAug12(2016)_Micromonas_pusilla_Host_Pic.PNG Thursday 27-Jun-2019 10:37:55 AM
+0.0164, 7.1499e5
+5.7692, 7.8236e5
+11.748, 6.709e5
+17.8037, 1.4035e6
+23.8484, 1.6594e6
+29.8424, 2.2133e6
+35.8321, 2.5785e6
+47.951, 4.3714e6
+72.0868, 8.5233e6
