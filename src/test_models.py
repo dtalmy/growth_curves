@@ -19,8 +19,8 @@ for did in tids:
     df = treatments.loc[did].copy()
     df.loc[:,'log_sigma'] = 0.2 # define uncertainty in data 
     df.loc[df.organism == 'H', 'time'] = df.loc[df.organism == 'H', 'time'].copy() -\
-                min(df.loc[df.organism == 'H', 'time'])
+                min(df.loc[df.organism == 'H', 'time']) # remove non-zero initial timepoints
     df.loc[df.organism == 'V', 'time'] = df.loc[df.organism == 'V', 'time'].copy() -\
-                min(df.loc[df.organism == 'V', 'time'])
-    tpdf = fit_all(df)
+                min(df.loc[df.organism == 'V', 'time']) # same for virus
+    tpdf = fit_all(df) # here is where the main work is done
     tpdf.close()

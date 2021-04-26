@@ -102,7 +102,7 @@ def get_models(df):
 
 # retrieve posteriors
 def get_posteriors(model):
-    posteriors = model.MCMC(chain_inits=2,iterations_per_chain=100000,
+    posteriors = model.MCMC(chain_inits=2,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -159,8 +159,13 @@ def plot_stats(stats):
     ax[2].set_xlabel('Number of infection states')
     return f,ax
 
+def get_residuals(modobj):
+    mod = modobj.integrate(predict_obs=True)
+    res = (mod.abundance - modobj.df.abundance)
+    return(res)
+
 def plot_residuals(model,prefig=False):
-    res = model.get_residuals()
+    res = get_residuals(model)
     df = model.df
     if prefig == False:
         f,ax = py.subplots(2,2)
