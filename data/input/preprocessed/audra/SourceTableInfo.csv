@@ -1,0 +1,59 @@
+﻿algalHost,algalHostTaxon,virusName,method,error,origSource,id
+,,,,,,
+Chaetoceros cf. wighamii,Diatom,CwNIV,epiflourescence microscopy,StdDev,"Eissler et al., 2009",Eissler40
+,,,,,,
+Chaetoceros debilis,Diatom,CdebDNAV,extinction dilution method,StdDev,"Tomaru et al., 2008",Tomaru39
+,,,,,,
+Chaetoceros lorenzianus,Diatom,ClorDNAV,optical microscopy,ConInt,Tomaru et al. 2011,Tomaru51
+,,,,,,
+Chaetoceros setoensis,Diatom,CsetDNAV,direct counting / extinction dilution method,ConInt,Tomaru et al. 2013b,Tomaru57
+,,,,,,
+Chaetoceros socialis f. radians,Diatom,CsfrRNAV,extinction dilution method,ConInt,"Tomaru et al., 2009",Tomaru43
+,,,,,,
+Chaetoceros sp. strain TG07-C28,Diatom,Csp05DNAV,optical microscopy / extinction dilution method,NA,"Toyoda et al., 2012",Toyoda53
+,,,,,,
+Chaetoceros sp. strain SS628-11 ,Diatom,Csp07DNAV,optical microscopy / extinction dilution method,StdDev,"Kimura and Tomaru, 2013",Kimura54
+,,,,,,
+Chaetoceros sp. strain SS08-C03,Diatom,Csp03RNAV,optical microscopy,NA,Tomaru et al. 2013a,Tomaru56
+,,,,,,
+Chaetoceros tenuissimus,Diatom,CtenDNAV type II,extinction dilution method,StdDev,"Kimura and Tomaru, 2015",Kimura66
+,,,,,,
+Chaetoceros tenuissimus,Diatom,CtenRNAV type II,extinction dilution method,StdDev,"Kimura and Tomaru, 2015",Kimura67
+,,,,,,
+Emiliania huxelyi,Haptophyte,EhV-99B1,flow cytometry,NA,Thamatrakoln,Talmy99
+,,,,,,
+Emiliania huxelyi,Haptophyte,Ehv18,flow cytometry,NA,Thamatrakoln,Talmy18
+,,,,,,
+Emiliania huxelyi,Haptophyte,EhVlwv,flow cytometry,NA,Thamatrakoln,
+,,,,,,
+Emiliania huxelyi,Haptophyte,Ehx207,flow cytometry,NA,Thamatrakoln,Talmy207
+,,,,,,
+Emiliania huxleyi,Haptophyte,EhV-99B1,flow cytometry,NA,"Castberg et al., 2002",Castberg24
+,,,,,,
+Haptolina ericina,Haptophyte,HeV RF02,FCM (flow cytometry method),StdErr,"Johannessen et al., 2015",Johannessen68
+,,,,,,
+Heterocapsa pygmaea,Dinoflagellate,HpygDNAV,light microscopy / extinction dilution method,StdDev,Kim et al. 2012,Kim52
+,,,,,,
+Phaeocystis globosa,Haptophyte,PgV-09T - Group I,flow cytometry,NA,"Baudoux et al., 2005",Baudoux34
+,,,,,,
+Phaeocystis globosa,Haptophyte,PgV-03T - Group 2a,flow cytometry,NA,"Baudoux et al., 2005",Baudoux3
+,,,,,,
+Phaeocystis globosa,Haptophyte,PgV-11T - Group 2b,flow cytometry,NA,"Baudoux et al., 2005",Baudoux33
+,,,,,,
+Phaeocystis Globosa,Haptophyte,PgV-01T - Group 2c,flow cytometry,NA,"Baudoux et al., 2005",Baudoux32
+,,,,,,
+Planktothrix agardhii,Cyanobacteria,PaV-LD,optical microscopy,StdDev,"Gao et al., 2009",Gao41
+,,,,,,
+Prymnesium kappa,Haptophyte,PkV RF01,FCM (flow cytometry method),StdErr,"Johannessen et al., 2015",Johannessen70
+,,,,,,
+Prymnesium kappa,Haptophyte,PkV RF02,FCM (flow cytometry method),StdErr,"Johannessen et al., 2015",Johannessen69
+,,,,,,
+Pyramimonas orientalis,Prasinophyte,PoV-01B,flow cytometry,NA,Sandaa et al. 2001,Sandaa26
+,,,,,,
+Rhizosolenia setigera,Diatom,RsRNAV,optical microscopy / extinction dilution method,ConInt,"Nagasaki et al., 2004",Nagasaki29
+,,,,,,
+Skeletonema costatum,Diatom,ScosV,light microscopy / extinction dilution method,StdDev,"Kim et al., 2015b",Kim72
+,,,,,,
+Stephanopyxis palmeriana,Diatom,SpalV,light microscopy / extinction dilution method,StdDev,"Kim et al., 2015a",Kim71
+,,,,,,
+Teleaulax amphioxeia,Cryptophyte,TampV,optical microscopy / extinction dilution method,NA,"Nagasaki et al., 2009",Nagasaki42
