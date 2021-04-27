@@ -208,9 +208,9 @@ def plot_residuals(model,prefig=False):
     return(f,ax)
 
 # master function to fit all datasets
-def fit_all(df):
+def fit_all_dir(df,DIRpdf):
     uid = df.index.unique()[0]
-    tpdf = PdfPages('../figures/'+uid+'.pdf')
+    tpdf = PdfPages(DIRpdf+uid+'.pdf')
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
@@ -238,3 +238,8 @@ def fit_all(df):
     tpdf.savefig(f3)
     tpdf.savefig(f4)
     return tpdf
+
+def fit_all(df,DIRpdf):
+    DIRpdf='../figures/'
+    fit_all_dir(df,DIRpdf):
+        
