@@ -239,7 +239,7 @@ def fit_all_dir(df,DIRpdf):
     tpdf.savefig(f4)
     return tpdf
 
-def fit_all(df,DIRpdf):
+def fit_all(df):
     DIRpdf='../figures/'
     fit_all_dir(df,DIRpdf):
         
