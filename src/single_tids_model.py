@@ -41,6 +41,8 @@ if __name__ == "__main__":
     parser.add_argument('--outpath', metavar='path', required=True,
                         help='path to save output')
     args = parser.parse_args()
-    main(tids=args.tids, outpath=args.outpath)
+    print('tids, path')
+    print(args.tids, args.path, sep=',')
+    main(str(args.tids), str(args.outpath))
     
     
