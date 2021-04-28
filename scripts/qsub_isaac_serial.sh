@@ -56,7 +56,7 @@ cd ./growth_curves/src
 #run model
 VALpdfname=$PBS_JOBID"_"$VALtag
 echo VALpdfname : $VALpdfname
-/lustre/haven/proj/UTK0105/usr/bin/python3.9 qsub_multi_model_comp_Func.py $VALpdfname $VALnits $VALpits $VALburnin
+/lustre/haven/proj/UTK0105/usr/bin/python3.9 test_model.py 
 # mail/move/delete
 mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
 cp ../figures/$PBS_JOBID* /lustre/haven/proj/UTK0105/Multi_Model/figures/
