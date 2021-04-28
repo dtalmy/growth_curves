@@ -36,13 +36,13 @@ def main(VALtids,DATAdir):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='run model for TIDS')
-    parser.add_argument('--tids', metavar='path', required=True,
+    parser.add_argument('tids', type=string, required=True,
                         help='the tids name')
-    parser.add_argument('--outpath', metavar='path', required=True,
+    parser.add_argument('outpath', type=string, required=True,
                         help='path to save output')
     args = parser.parse_args()
-    print('tids, path')
-    print(args.tids, args.path, sep=',')
+    print('tids, outpath')
+    print(args.tids, args.outpath, sep=',')
     main(str(args.tids), str(args.outpath))
     
     
