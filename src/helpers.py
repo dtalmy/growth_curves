@@ -241,5 +241,5 @@ def fit_all_dir(df,DIRpdf):
 
 def fit_all(df):
     DIRpdf='../figures/'
-    fit_all_dir(df,DIRpdf):
+    fit_all_dir(df,DIRpdf)
         
