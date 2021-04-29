@@ -2,6 +2,7 @@ import pylab as py
 import pandas as pd
 import scipy
 import argparse
+import subprocess
 
 def main(VALver):
     #########################################################
@@ -30,7 +31,7 @@ def main(VALver):
         writer.write('   echo \"$i\"\n')
         writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
         writer.write('done')
-    
+    subprocess.run(["chmod", "ug+x "+dest_file])
 
 if __name__ == "__main__":
     
