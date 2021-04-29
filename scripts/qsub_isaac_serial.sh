@@ -11,9 +11,6 @@
 #PBS -l feature=skylake
 #PBS -l qos=condo
 #PBS -l walltime=96:00:00
-#PBS - VALnits= 1000
-#PBS - VALpits= 100
-#PBS - VALburnin= 500
 #PBS - VALtag test
 ##########################################
 #                                        #
@@ -41,10 +38,6 @@ echo ---Modules
 module load git/2.13.0 
 module list
 echo PBS_JOBID : $PBS_JOBID
-echo VALname   : $VALname
-echo VALnits   : $VALnits
-echo VALpits   : $VALpits
-echo VALburnin : $VALburnin
 #
 #Setup run 
 cd /lustre/haven/proj/UTK0105/Python_runs
@@ -54,8 +47,9 @@ git clone -b master https://github.com/dtalmy/growth_curves
 cd ./growth_curves/src 
 #
 #run model
-VALpdfname=$PBS_JOBID"_"$VALtag
-echo VALpdfname : $VALpdfname
+# do not use pdfname for this version
+#VALpdfname=$PBS_JOBID"_"$VALtag
+#echo VALpdfname : $VALpdfname
 /lustre/haven/proj/UTK0105/usr/bin/python3.9 test_model.py 
 # mail/move/delete
 #mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
