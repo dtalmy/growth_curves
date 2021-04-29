@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -S /bin/bash
 #PBS -A ACF-UTK0105
-#PBS -N MultiModel
+#PBS -N TIDS_submission
 #PBS -m abe
 #PBS -M ecarr@utk.edu
 #PBS -o /lustre/haven/proj/UTK0105/Python_runs/job_data/$PBS_JOBID-out.txt
