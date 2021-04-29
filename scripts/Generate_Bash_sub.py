@@ -35,7 +35,7 @@ def main(VALver):
         writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
         writer.write('done')
         
-    Print("Set file permission for execute")
+    print("Set file permission for execute")
     result=subprocess.run(["ls", "-l",dest_file], capture_output=True, text=True)    
     print(result.stdout)
         
