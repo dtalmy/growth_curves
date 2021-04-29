@@ -21,11 +21,13 @@ def main(VALver):
     with open(dest_file, 'w') as writer:
         writer.write('#!/bin/bash\n')
         writer.write('declare -a arr=(\n')
-        writer.write('\n')
-        writer.write('')
-        writer.write('for i in \\"${arr[@]}\\"\n')
+        for did in tids:
+            print(did)
+            writer.write('$did\n')
+        writer.write(')/n')
+        writer.write('for i in \"${arr[@]}\"\n')
         writer.write('do\n')
-        writer.write('  echo \\"$i\\"\n')
+        writer.write('   echo \"$i\"\n')
         writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
         writer.write('done\n')
     
