@@ -19,15 +19,15 @@ def main(VALver):
     dest_file= 'Gen_sub'+str(VALver)+'.sh'
     print(dest_file)
     with open(dest_file, 'w') as writer:
-        writer.write('#!/bin/bash')
-        writer.write('declare -a arr=(')
+        writer.write('#!/bin/bash\n')
+        writer.write('declare -a arr=(\n')
+        writer.write('\n')
         writer.write('')
-        writer.write('')
-        writer.write('for i in \\"${arr[@]}\\"')
-        writer.write('do')
-        writer.write('  echo "$i"')
-        writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  ')
-        writer.write('done')
+        writer.write('for i in \\"${arr[@]}\\"\n')
+        writer.write('do\n')
+        writer.write('  echo \\"$i\\"\n')
+        writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
+        writer.write('done\n')
     
 
 if __name__ == "__main__":
