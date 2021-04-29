@@ -1,6 +1,7 @@
 #!/bin/bash
 
-declare -a arr=("Baudoux32"
+declare -a arr=(
+"Baudoux32"
 "Eissler40"
 "Kim52"
 "Nagasaki29"
@@ -36,5 +37,4 @@ for i in "${arr[@]}"
 do
    echo "$i"
    qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  
-     
 done
