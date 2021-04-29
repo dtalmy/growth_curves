@@ -35,10 +35,7 @@ def main(VALver):
         writer.write('done')
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
     print(result.stdout)
-    cmdresult=subprocess.run(["touch "+dest_file], capture_output=True, text=True)
-    print(cmdresult.stdout)
-    print(cmdresult.stderr)
-    
+        
     os.chmod(dest_file, stat.S_IRUSR | stat.S_IWUSR |stat.S_IXUSR |stat.S_IRGRP | stat.S_IROTH)
     
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
