@@ -40,7 +40,6 @@ module list
 echo PBS_JOBID : $PBS_JOBID
 echo VALtids   : $VALtids
 echo VALoutpath   : $VALoutpath
-e
 #Setup run 
 cd /lustre/haven/proj/UTK0105/Python_runs
 mkdir ./$PBS_JOBID
