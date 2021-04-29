@@ -31,7 +31,11 @@ def main(VALver):
         writer.write('   echo \"$i\"\n')
         writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
         writer.write('done')
-    subprocess.run(["chmod", "ug+x "+dest_file])
+    result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
+    print(result)
+    subprocess.run(["chmod", " ug+x "+dest_file])
+    result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
+    print(result)
 
 if __name__ == "__main__":
     
