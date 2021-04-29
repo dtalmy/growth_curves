@@ -58,8 +58,6 @@ VALpdfname=$PBS_JOBID"_"$VALtag
 echo VALpdfname : $VALpdfname
 /lustre/haven/proj/UTK0105/usr/bin/python3.9 test_model.py 
 # mail/move/delete
-mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
-cp ../figures/$PBS_JOBID* /lustre/haven/proj/UTK0105/Multi_Model/figures/
-cd /lustre/haven/proj/UTK0105/Multi_Model/run
+#mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
+#cp ../figures/$PBS_JOBID* /lustre/haven/proj/UTK0105/Python_runs/figures/
 #rm -rf ./$PBS_JOBID
-
