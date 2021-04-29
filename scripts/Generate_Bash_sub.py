@@ -33,7 +33,7 @@ def main(VALver):
         writer.write('done')
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
     print(result.stdout)
-    cmdresult=subprocess.run(["chmod", " ug+x "+dest_file], capture_output=True, text=True)
+    cmdresult=subprocess.run(["chmod ug+x "+dest_file], capture_output=True, text=True)
     print(cmdresult.stdout)
     print(cmdresult.stderr)
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
