@@ -35,5 +35,6 @@ declare -a arr=("Baudoux32"
 for i in "${arr[@]}"
 do
    echo "$i"
-   # or do whatever with individual element of the array
+   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  
+     
 done
