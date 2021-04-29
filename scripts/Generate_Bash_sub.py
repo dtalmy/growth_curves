@@ -32,10 +32,12 @@ def main(VALver):
         writer.write('   qsub qsub_tids.sh  -v VALtids=$i,VALoutpath=/lustre/haven/proj/UTK0105/Python_runs/aaa  \n')
         writer.write('done')
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
-    print(result)
-    subprocess.run(["chmod", " ug+x "+dest_file])
+    print(result.stdout)
+    cmdresult=subprocess.run(["chmod", " ug+x "+dest_file], capture_output=True, text=True)
+    print(cmdresult.stdout)
+    print(cmdresult.stderr)
     result=subprocess.run(["ls", "-l"], capture_output=True, text=True)    
-    print(result)
+    print(result.stdout)
 
 if __name__ == "__main__":
     
