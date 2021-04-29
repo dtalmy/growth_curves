@@ -5,7 +5,7 @@
 #PBS -m abe
 #PBS -M ecarr@utk.edu
 #PBS -o /lustre/haven/proj/UTK0105/Python_runs/job_data/$PBS_JOBID-out.txt
-#PBS -e /lustre/haven/proj/UTK0105/Multi_Model/job_data/$PBS_JOBID-err.txt
+#PBS -e /lustre/haven/proj/UTK0105/Python_runs/job_data/$PBS_JOBID-err.txt
 #PBS -l nodes=1:ppn=2
 #PBS -l partition=general
 #PBS -l feature=skylake
