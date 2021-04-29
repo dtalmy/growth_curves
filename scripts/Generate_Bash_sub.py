@@ -16,7 +16,7 @@ def main(VALver):
     master_df = pd.concat((master_df,abiotic_treatment_df))
     treatments = master_df.query('control==False').copy() # remove controls
     tids = treatments.index.unique() # unique ids
-    dest_file= 'Gen_sub'+str(Valver)+'.sh'
+    dest_file= 'Gen_sub'+str(VALver)+'.sh'
     print(dest_file)
     with open(dest_file, 'w') as writer:
         writer.write('#!/bin/bash')
