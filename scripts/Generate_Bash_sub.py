@@ -23,7 +23,7 @@ def main(VALver):
         writer.write('declare -a arr=(\n')
         for did in tids:
             print(did)
-            writer.write('$did\n')
+            writer.write('\"'+did+'\"\n')
         writer.write(')/n')
         writer.write('for i in \"${arr[@]}\"\n')
         writer.write('do\n')
