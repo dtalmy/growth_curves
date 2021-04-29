@@ -8,8 +8,8 @@ def main(VALver):
     ## Single model run based on tids value
     #########################################################
     # read data
-    print(VALtids)
-    print(DATAdir)
+    print(VALver)
+    
     master_df = pd.read_csv('../data/input/processed/processed_data.csv',index_col='id')
     abiotic_treatment_df = pd.read_csv('../data/input/preprocessed/reu_2019/treatments.csv',index_col='id')
     abiotic_treatment_df = abiotic_treatment_df[abiotic_treatment_df['treatment']=='Replete']
@@ -17,6 +17,7 @@ def main(VALver):
     treatments = master_df.query('control==False').copy() # remove controls
     tids = treatments.index.unique() # unique ids
     dest_file= 'Gen_sub'+str(Valver)+'.sh'
+    print(dest_file)
     with open(dest_file, 'w') as writer:
         writer.write('#!/bin/bash')
         writer.write('declare -a arr=(')
