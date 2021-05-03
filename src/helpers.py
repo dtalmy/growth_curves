@@ -103,7 +103,7 @@ def get_models(df):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=10,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -162,7 +162,7 @@ def plot_stats(stats):
 
 def get_residuals(modobj):
     mod = modobj.integrate(predict_obs=True)
-    res = (mod.abundance - modobj.df.abundance)
+    res = (mod.abundance.sort_index() - modobj.df.abundance.sort_index())
     return(res)
 
 def get_param_print_stats(d):
@@ -186,7 +186,7 @@ def set_optimal_parameters(model,posterior):
     model.set_parameters(**pdic)
 
 def plot_residuals(model,prefig=False):
-    res = model.get_residuals()
+    res = get_residuals(model)
     df = model.df
     if prefig == False:
         f,ax = py.subplots(2,2)
@@ -229,20 +229,20 @@ def plot_residuals(model,prefig=False):
     return(f,ax)
 
 # master function to fit all datasets
-def fit_all_dir(df,DIRpdf='../figures',chain_inits=2):
+def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     uid = df.index.unique()[0]
     tpdf = PdfPages(DIRpdf+uid+'.pdf')
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
         posterior = get_posteriors(models[a],chain_inits)
-        models[a].set_parameters(**posterior.iloc[-1][models[a].get_pnames()].to_dict())
+        set_optimal_parameters(models[a],posterior)
         mod = models[a].integrate(predict_obs=True,as_dataframe=False)
         fs = models[a].get_fitstats(mod)
         stats[a] = fs
         posteriors[a] = posterior
         aics[a] = fs['AIC']
-    minaic = min(aics.values())
+    minaic = np.nanmin(np.array(list(aics.values())))
     bestmod = [a for a in aics if aics[a] == minaic][0]
     bestposteriors = posteriors[bestmod]
     bestposteriors['bestmodel'] = bestmod
