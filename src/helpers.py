@@ -1,5 +1,6 @@
 import ODElib
 import scipy
+import numpy as np
 import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
 from define_models import *
@@ -101,8 +102,8 @@ def get_models(df):
 
 
 # retrieve posteriors
-def get_posteriors(model):
-    posteriors = model.MCMC(chain_inits=2,iterations_per_chain=1000,
+def get_posteriors(model,chain_inits=2):
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -164,8 +165,28 @@ def get_residuals(modobj):
     res = (mod.abundance - modobj.df.abundance)
     return(res)
 
+def get_param_print_stats(d):
+    lq,uq,mn = np.quantile(d,0.25),np.quantile(d,0.75),np.median(d)
+    if (lq < 1e-3) or (uq > 1e+3):
+        ps = str(f'{mn:.2}')+' ('+str(f'{lq:.2}')+','+str(f'{uq:.2}')+')'
+    else:
+        if (lq < 1e-0):
+            ps = str(round(mn,2))+' ('+str(round(lq,2))+','+str(round(uq,2))+')'
+        elif (lq >= 1e-0) and (lq < 1e+1):
+            ps = str(round(mn,1))+' ('+str(round(lq,1))+','+str(round(uq,1))+')'
+        else:
+            ps = str(round(mn,0))+' ('+str(round(lq,0))+','+str(round(uq,0))+')'
+    return ps
+
+def set_optimal_parameters(model,posterior):
+    stats = np.r_[[np.exp(np.mean(np.log(posterior[p]))) for p in model.get_pnames()]]
+    pdic = {}
+    for (n,m) in zip(model.get_pnames(),stats):
+        pdic[n] = m
+    model.set_parameters(**pdic)
+
 def plot_residuals(model,prefig=False):
-    res = get_residuals(model)
+    res = model.get_residuals()
     df = model.df
     if prefig == False:
         f,ax = py.subplots(2,2)
@@ -208,13 +229,13 @@ def plot_residuals(model,prefig=False):
     return(f,ax)
 
 # master function to fit all datasets
-def fit_all(df):
+def fit_all(df,chain_inits):
     uid = df.index.unique()[0]
     tpdf = PdfPages('../figures/'+uid+'.pdf')
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
-        posterior = get_posteriors(models[a])
+        posterior = get_posteriors(models[a],chain_inits)
         models[a].set_parameters(**posterior.iloc[-1][models[a].get_pnames()].to_dict())
         mod = models[a].integrate(predict_obs=True,as_dataframe=False)
         fs = models[a].get_fitstats(mod)
