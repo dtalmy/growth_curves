@@ -13,6 +13,11 @@ master_df = pd.concat((master_df,abiotic_treatment_df))
 treatments = master_df.query('control==False').copy() # remove controls
 tids = treatments.index.unique() # unique ids
 
+# define a default parameter set to start with
+params = ['mu', 'phi', 'beta', 'lam', 'tau']
+vals = np.array([[7.89521023e-02, 1.58000000e-10, 7.13056931e+01, 1.77303384e-02,5.53986788e-02]])
+chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
+
 # loop over each datset and save model output to pdf
 for did in tids:
     print(did)
@@ -22,5 +27,5 @@ for did in tids:
                 min(df.loc[df.organism == 'H', 'time']) # remove non-zero initial timepoints
     df.loc[df.organism == 'V', 'time'] = df.loc[df.organism == 'V', 'time'].copy() -\
                 min(df.loc[df.organism == 'V', 'time']) # same for virus
-    tpdf = fit_all(df) # here is where the main work is done
+    tpdf = fit_all_dir(df,chain_inits=chain_inits) # here is where the main work is done
     tpdf.close()
