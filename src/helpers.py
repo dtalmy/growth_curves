@@ -100,10 +100,46 @@ def get_models(df):
 
     return {'zeroI':zeroI,'oneI':oneI,'twoI':twoI,'threeI':threeI,'fourI':fourI,'fiveI':fiveI}
 
+def plot_posterior_hists(model,posterior):
+    pnames = model.get_pnames()
+    nps = len(pnames)
+    f,ax = py.subplots(nps,1,figsize=[5,nps*4])
+    for (a,l) in zip(ax,pnames):
+        a.set_xlabel(l)
+        a.hist(posterior[l],bins=20)
+    f.suptitle(model.get_model().__name__)
+    f.subplots_adjust(hspace=0.4)
+    return(f,ax)
+
+def plot_posterior_facet(model,posteriors):
+    pnames = model.get_pnames()
+    nps = len(pnames)
+    f,ax = py.subplots(nps-1,nps-1,figsize=[(nps-1)*4,(nps-1)*4])
+    for (i,nx) in zip(range(nps-1),pnames[:-1]):
+        for (j,ny) in zip(range(nps-1),pnames[1:]):
+            if j < i:
+                ax[i,j].axis('off')
+            else:
+                ax[i,j].scatter(posteriors[nx],posteriors[ny])
+                ax[i,j].set_xlabel(nx)
+                ax[i,j].set_ylabel(ny)
+                ax[i,j].semilogx()
+                ax[i,j].semilogy()
+    f.subplots_adjust(hspace=0.3,wspace=0.3)
+    return(f,ax)
+
+def plot_chi_hist(model,posteriors):
+    f,ax = subplots()
+    return(f,ax)
+
+def plot_chi_trace(model,posteriors):
+    f,ax = subplots()
+    return(f,ax)
+
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=100000,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -258,10 +294,18 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     tpdf.savefig(f2)
     tpdf.savefig(f3)
     tpdf.savefig(f4)
+    for (m,p) in zip(models.values(),posteriors.values()):
+        fa,aa = plot_posterior_hists(m,p)
+        fb,ab = plot_posterior_facet(m,p)
+        tpdf.savefig(fa)
+        tpdf.savefig(fb)
     return tpdf
 
 def fit_all(df):
     DIRpdf='../figures/'
+    params = ['mu', 'phi', 'beta', 'lam', 'tau']
+    vals = np.array([[7.89521023e-02, 1.58000000e-10, 7.13056931e+01, 1.77303384e-02,5.53986788e-02]])
+    chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
     tpdf=fit_all_dir(df,DIRpdf)
     return tpdf
         
