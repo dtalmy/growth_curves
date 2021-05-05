@@ -1,5 +1,6 @@
 import ODElib
 import scipy
+import pandas as pd
 import numpy as np
 import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
@@ -306,6 +307,6 @@ def fit_all(df):
     params = ['mu', 'phi', 'beta', 'lam', 'tau']
     vals = np.array([[7.89521023e-02, 1.58000000e-10, 7.13056931e+01, 1.77303384e-02,5.53986788e-02]])
     chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
-    tpdf=fit_all_dir(df,DIRpdf)
+    tpdf=fit_all_dir(df,DIRpdf,chain_inits)
     return tpdf
         
