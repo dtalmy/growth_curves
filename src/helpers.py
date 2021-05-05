@@ -308,5 +308,6 @@ def fit_all(df):
     vals = np.array([[7.89521023e-02, 1.58000000e-10, 7.13056931e+01, 1.77303384e-02,5.53986788e-02]])
     chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
     tpdf=fit_all_dir(df,DIRpdf,chain_inits)
+    print('STOP NORMAL END')
     return tpdf
         
