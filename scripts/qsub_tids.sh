@@ -2,8 +2,6 @@
 #PBS -S /bin/bash
 #PBS -A ACF-UTK0105
 #PBS -N TIDS_submission
-#PBS -m 
-#PBS -M 
 #PBS -o /lustre/haven/proj/UTK0105/Python_runs/job_data/$PBS_JOBID-out.txt
 #PBS -e /lustre/haven/proj/UTK0105/Python_runs/job_data/$PBS_JOBID-err.txt
 #PBS -l nodes=1:ppn=2
