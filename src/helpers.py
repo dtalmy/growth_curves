@@ -107,7 +107,9 @@ def plot_posterior_hists(model,posterior):
     f,ax = py.subplots(nps,1,figsize=[5,nps*4])
     for (a,l) in zip(ax,pnames):
         a.set_xlabel(l)
-        a.hist(posterior[l],bins=20)
+        for cn in posterior['chain#'].unique():
+            ps = posterior[posterior['chain#']==cn]
+            a.hist(ps[l],bins=20,alpha=0.5)
     f.suptitle(model.get_model().__name__)
     f.subplots_adjust(hspace=0.4)
     return(f,ax)
@@ -122,8 +124,8 @@ def plot_posterior_facet(model,posteriors):
                 ax[i,j].axis('off')
             else:
                 for cn in posteriors['chain#'].unique():
-                    chis = posteriors[posteriors['chain#']==cn].chi
-                    ax[i,j].scatter(posteriors[nx],posteriors[ny],rasterized=True,alpha=0.5)
+                    ps = posteriors[posteriors['chain#']==cn]
+                    ax[i,j].scatter(ps[nx],ps[ny],rasterized=True,alpha=0.5)
                     ax[i,j].set_xlabel(nx)
                     ax[i,j].set_ylabel(ny)
                     ax[i,j].semilogx()
@@ -156,7 +158,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=100000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=500000,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -316,9 +318,7 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     tpdf.savefig(f2)
     tpdf.savefig(f3)
     tpdf.savefig(f4)
-    print('going',models.keys())
     for (m,p) in zip(models.values(),posteriors.values()):
-        print('doing',m,p)
         fa,aa = plot_posterior_hists(m,p)
         fb,ab = plot_posterior_facet(m,p)
         fc,ac = plot_chi_hists(m,p)
