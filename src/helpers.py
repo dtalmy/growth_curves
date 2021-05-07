@@ -121,26 +121,42 @@ def plot_posterior_facet(model,posteriors):
             if j < i:
                 ax[i,j].axis('off')
             else:
-                ax[i,j].scatter(posteriors[nx],posteriors[ny])
-                ax[i,j].set_xlabel(nx)
-                ax[i,j].set_ylabel(ny)
-                ax[i,j].semilogx()
-                ax[i,j].semilogy()
+                for cn in posteriors['chain#'].unique():
+                    chis = posteriors[posteriors['chain#']==cn].chi
+                    ax[i,j].scatter(posteriors[nx],posteriors[ny],rasterized=True,alpha=0.5)
+                    ax[i,j].set_xlabel(nx)
+                    ax[i,j].set_ylabel(ny)
+                    ax[i,j].semilogx()
+                    ax[i,j].semilogy()
+    f.suptitle(model.get_model().__name__)
     f.subplots_adjust(hspace=0.3,wspace=0.3)
     return(f,ax)
 
-def plot_chi_hist(model,posteriors):
-    f,ax = subplots()
+# plot chi hists
+def plot_chi_hists(model,posteriors,chain_sep=True):
+    f,ax = py.subplots()
+    for cn in posteriors['chain#'].unique():
+        chis = posteriors[posteriors['chain#']==cn].chi
+        ax.hist(chis,alpha=0.5)
+    ax.set_xlabel('chi')
+    ax.set_ylabel('frequency')
+    f.suptitle(model.get_model().__name__)
     return(f,ax)
 
 def plot_chi_trace(model,posteriors):
-    f,ax = subplots()
+    f,ax = py.subplots()
+    for cn in posteriors['chain#'].unique():
+        chis = posteriors[posteriors['chain#']==cn].chi
+        py.plot(range(chis.shape[0]),chis,rasterized=True)
+    ax.set_xlabel('iteration')
+    ax.set_ylabel('chi')
+    f.suptitle(model.get_model().__name__)
     return(f,ax)
 
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=10,
                        cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
@@ -168,7 +184,7 @@ def plot_infection_dynamics(models):
     return f,ax
 
 # plot posteriors for key parameters beta, mu, and phi
-def plot_posteriors(posteriors):
+def plot_posteriors(posteriors,chain_sep=True):
     f,ax = py.subplots(3,1,figsize=[10,10])
     mus = [posterior['mu'] for posterior in posteriors.values()]
     bets = [posterior['beta'] for posterior in posteriors.values()]
@@ -215,12 +231,17 @@ def get_param_print_stats(d):
             ps = str(round(mn,0))+' ('+str(round(lq,0))+','+str(round(uq,0))+')'
     return ps
 
-def set_optimal_parameters(model,posterior):
+def set_posterior_parameters(model,posterior):
     stats = np.r_[[np.exp(np.mean(np.log(posterior[p]))) for p in model.get_pnames()]]
     pdic = {}
     for (n,m) in zip(model.get_pnames(),stats):
         pdic[n] = m
     model.set_parameters(**pdic)
+
+def set_optimal_parameters(model,posteriors):
+    im = posteriors.loc[posteriors.chi==min(posteriors.chi)].index[0]
+    pdic = posteriors.loc[im][model.get_pnames()].to_dict()
+    model.set_parameters(**posteriors.loc[im][model.get_pnames()].to_dict())
 
 def plot_residuals(model,prefig=False):
     res = get_residuals(model)
@@ -283,7 +304,7 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     bestmod = [a for a in aics if aics[a] == minaic][0]
     bestposteriors = posteriors[bestmod]
     bestposteriors['bestmodel'] = bestmod
-    bestposteriors.to_csv('../data/output/'+uid+'.csv')
+    pd.concat(posteriors).to_csv('../data/output/'+uid+'.csv')
     f1,ax1 = plot_infection_dynamics(models)
     f2,ax2 = plot_posteriors(posteriors)
     f3,ax3 = plot_stats(stats)
@@ -298,14 +319,18 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     for (m,p) in zip(models.values(),posteriors.values()):
         fa,aa = plot_posterior_hists(m,p)
         fb,ab = plot_posterior_facet(m,p)
+        fc,ac = plot_chi_hists(m,p)
+        fd,ad = plot_chi_trace(m,p)
         tpdf.savefig(fa)
         tpdf.savefig(fb)
+        tpdf.savefig(fc)
+        tpdf.savefig(fd)
     return tpdf
 
 def fit_all(df):
     DIRpdf='../figures/'
     params = ['mu', 'phi', 'beta', 'lam', 'tau']
-    vals = np.array([[7.89521023e-02, 1.58000000e-10, 7.13056931e+01, 1.77303384e-02,5.53986788e-02]])
+    vals = np.array([[1.270e-02, 1.304e-09, 4.344e+01, 1.77303384e-02,5.53986788e-02]])
     chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
     tpdf=fit_all_dir(df,DIRpdf,chain_inits)
     print('STOP NORMAL END')
