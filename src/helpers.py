@@ -318,7 +318,7 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
     tpdf.savefig(f4)
     print('going',models.keys())
     for (m,p) in zip(models.values(),posteriors.values()):
-	print('doing',m,p)
+        print('doing',m,p)
         fa,aa = plot_posterior_hists(m,p)
         fb,ab = plot_posterior_facet(m,p)
         fc,ac = plot_chi_hists(m,p)
