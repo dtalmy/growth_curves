@@ -197,6 +197,9 @@ def plot_posteriors(posteriors,chain_sep=True):
     ax[0].set_ylabel('mu')
     ax[1].set_ylabel('beta')
     ax[2].set_ylabel('phi')
+    ax[0].set_rasterized(True)
+    ax[1].set_rasterized(True)
+    ax[2].set_rasterized(True)
     return f,ax
 
 # model selection statistics
@@ -280,21 +283,35 @@ def plot_residuals(model,prefig=False):
     py.xscale('symlog')
     py.sca(ax[3])
     py.xscale('symlog')
-    #ax[0].set_ylim(-rhmax,rhmax)
-    #ax[1].set_ylim(-rvmax,rvmax)
-    #ax[2].set_xlim(-rhmax,rhmax)
-    #ax[3].set_xlim(-rvmax,rvmax)
     f.suptitle('Residuals for model with lowest AIC')
     f.subplots_adjust(hspace=0.3,wspace=0.3)
     return(f,ax)
 
+def print_params_to_csv(model,uid):
+    fname = '../data/params/'+uid + '_' + model.get_model().__name__ + '_params.csv'
+    pframe = pd.DataFrame(model.get_parameters(),columns=model.get_pnames())
+    pframe['id'] = uid
+    pframe = pframe.set_index('id')
+    pframe['modelname'] = model.get_model().__name__
+    pframe.to_csv(fname)
+
+def get_params_from_csv(model,uid):
+    fname = '../data/params/'+uid + '_' + model.get_model().__name__ + '_params.csv'
+    pframe = pd.read_csv(fname,index_col='id')
+    model.set_parameters(**pframe.loc[uid][model.get_pnames()].to_dict())
+    return model
+
 # master function to fit all datasets
-def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
+def fit_all_dir(df,DIRpdf='../figures/'):
     uid = df.index.unique()[0]
     tpdf = PdfPages(DIRpdf+uid+'.pdf')
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
+        get_params_from_csv(models[a],uid)
+        params = models[a].get_pnames()
+        vals = models[a].get_parameters()
+        chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
         posterior = get_posteriors(models[a],chain_inits)
         set_optimal_parameters(models[a],posterior)
         mod = models[a].integrate(predict_obs=True,as_dataframe=False)
@@ -302,6 +319,7 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
         stats[a] = fs
         posteriors[a] = posterior
         aics[a] = fs['AIC']
+        print_params_to_csv(models[a],uid)
     minaic = np.nanmin(np.array(list(aics.values())))
     bestmod = [a for a in aics if aics[a] == minaic][0]
     bestposteriors = posteriors[bestmod]
@@ -331,10 +349,7 @@ def fit_all_dir(df,DIRpdf='../figures/',chain_inits=2):
 
 def fit_all(df):
     DIRpdf='../figures/'
-    params = ['mu', 'phi', 'beta', 'lam', 'tau']
-    vals = np.array([[1.270e-02, 1.304e-09, 4.344e+01, 1.77303384e-02,5.53986788e-02]])
-    chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
-    tpdf=fit_all_dir(df,DIRpdf,chain_inits)
+    tpdf=fit_all_dir(df,DIRpdf)
     print('STOP NORMAL END')
     return tpdf
         

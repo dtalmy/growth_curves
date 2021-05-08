@@ -13,19 +13,13 @@ master_df = pd.concat((master_df,abiotic_treatment_df))
 treatments = master_df.query('control==False').copy() # remove controls
 tids = treatments.index.unique() # unique ids
 
-# define a default parameter set to start with
-params = ['mu', 'phi', 'beta', 'lam', 'tau']
-vals = np.array([[1.270e-02, 1.304e-09, 4.344e+01, 1.77303384e-02,5.53986788e-02]])
-chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
-
 # loop over each datset and save model output to pdf
 for did in tids:
-    print(did)
     df = treatments.loc[did].copy()
     df.loc[:,'log_sigma'] = 0.2 # define uncertainty in data 
     df.loc[df.organism == 'H', 'time'] = df.loc[df.organism == 'H', 'time'].copy() -\
                 min(df.loc[df.organism == 'H', 'time']) # remove non-zero initial timepoints
     df.loc[df.organism == 'V', 'time'] = df.loc[df.organism == 'V', 'time'].copy() -\
                 min(df.loc[df.organism == 'V', 'time']) # same for virus
-    tpdf = fit_all_dir(df,chain_inits=chain_inits) # here is where the main work is done
+    tpdf = fit_all_dir(df) # here is where the main work is done
     tpdf.close()
