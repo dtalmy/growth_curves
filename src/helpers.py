@@ -288,7 +288,7 @@ def plot_residuals(model,prefig=False):
     return(f,ax)
 
 def print_params_to_csv(model,uid):
-    fname = '../data/params/'+uid + '_' + model.get_model().__name__ + '_params.csv'
+    fname = '../data/params/final/'+uid + '_' + model.get_model().__name__ + '_params.csv'
     pframe = pd.DataFrame(model.get_parameters(),columns=model.get_pnames())
     pframe['id'] = uid
     pframe = pframe.set_index('id')
@@ -296,7 +296,7 @@ def print_params_to_csv(model,uid):
     pframe.to_csv(fname)
 
 def get_params_from_csv(model,uid):
-    fname = '../data/params/'+uid + '_' + model.get_model().__name__ + '_params.csv'
+    fname = '../data/params/initial/'+uid + '_' + model.get_model().__name__ + '_params.csv'
     pframe = pd.read_csv(fname,index_col='id')
     model.set_parameters(**pframe.loc[uid][model.get_pnames()].to_dict())
     return model
