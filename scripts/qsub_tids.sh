@@ -54,8 +54,8 @@ echo VALpdfname : $VALpdfname
 /lustre/haven/proj/UTK0105/usr/bin/python3.9 single_tids_model.py $VALtids '../figures/'
 # mail/move/delete
 #mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
+cp ../data/output/* /lustre/haven/proj/UTK0105/Python_runs/aaa/posteriors/
 cp ../figures/* /lustre/haven/proj/UTK0105/Python_runs/aaa/figures/
 cp ../data/params/final/* /lustre/haven/proj/UTK0105/Python_runs/aaa/params/
-cp /lustre/haven/proj/UTK0105/Python_runs/aaa/* /lustre/haven/proj/UTK0105/Python_runs/aaa/posteriors
 #cd /lustre/haven/proj/UTK0105/Python_runs
 #rm -rf ./$PBS_JOBID
