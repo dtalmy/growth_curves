@@ -57,5 +57,9 @@ echo VALpdfname : $VALpdfname
 cp ../data/output/* /lustre/haven/proj/UTK0105/Python_runs/aaa/posteriors/
 cp ../figures/* /lustre/haven/proj/UTK0105/Python_runs/aaa/figures/
 cp ../data/params/final/* /lustre/haven/proj/UTK0105/Python_runs/aaa/params/
+#make DIR readable by group
+chmod +R g+r /lustre/haven/proj/UTK0105/Python_runs/aaa
+chmod +R g+r /lustre/haven/proj/UTK0105/Python_runs/$PBS_JOBID
+chmod +R g+r /lustre/haven/proj/UTK0105/Python_runs/job_data
 #cd /lustre/haven/proj/UTK0105/Python_runs
 #rm -rf ./$PBS_JOBID
