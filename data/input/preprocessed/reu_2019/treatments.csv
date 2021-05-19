@@ -34,7 +34,7 @@ Steenhauer2016,H,FALSE,40.0335,32414.9109,FALSE,Replete,Cylindrospermopsis racib
 Steenhauer2016,H,FALSE,44.0593,5672.6094,FALSE,Replete,Cylindrospermopsis raciborskii
 Steenhauer2016,H,FALSE,48.0724,5132.3609,FALSE,Replete,Cylindrospermopsis raciborskii
 Steenhauer2016,H,FALSE,52.0626,2296.0562,FALSE,Replete,Cylindrospermopsis raciborskii
-Steenhauer2016,H,FALSE,56.0529,0,FALSE,Replete,Cylindrospermopsis raciborskii
+Steenhauer2016,H,FALSE,56.0529,1,FALSE,Replete,Cylindrospermopsis raciborskii
 Slagter2016,H,TRUE,0.0231,8.63E+05,FALSE,Fe Limited, Phaeocystis globosa
 Slagter2016,H,TRUE,3.9284,1.04E+06,FALSE,Fe Limited, Phaeocystis globosa
 Slagter2016,H,TRUE,8.002,9.43E+05,FALSE,Fe Limited, Phaeocystis globosa
@@ -72,7 +72,7 @@ Slagter2016,H,FALSE,32.0586,13029.316,FALSE,Replete, Phaeocystis globosa
 Slagter2016,H,FALSE,36.0456,11400.6515,FALSE,Replete, Phaeocystis globosa
 Slagter2016,H,FALSE,40.0325,3257.329,FALSE,Replete, Phaeocystis globosa
 Slagter2016,H,FALSE,44.0602,1628.6644,FALSE,Replete, Phaeocystis globosa
-Slagter2016,H,FALSE,48.0879,0,FALSE,Replete, Phaeocystis globosa
+Slagter2016,H,FALSE,48.0879,1,FALSE,Replete, Phaeocystis globosa
 Slagter2016,V,FALSE,0,1.71E+07,FALSE,Replete, Phaeocystis globosa
 Slagter2016,V,FALSE,3.9902,2.78E+07,FALSE,Replete, Phaeocystis globosa
 Slagter2016,V,FALSE,8.0212,5.64E+07,FALSE,Replete, Phaeocystis globosa
@@ -549,3 +549,28 @@ Maat2016b,V,FALSE,30.0347,1.19E+08,FALSE,Replete, Micromonas pusilla
 Maat2016b,V,FALSE,36.06,1.25E+08,FALSE,Replete, Micromonas pusilla
 Maat2016b,V,FALSE,48.0526,1.40E+08,FALSE,Replete, Micromonas pusilla
 Maat2016b,V,FALSE,72.0864,1.35E+08,FALSE,Replete, Micromonas pusilla
+Kranzler2021,H,FALSE,0,500000,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,24,1171006.499,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,48,2202909.831,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,120,2373691.1,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,144,797869.8946,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,168,145376.4994,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,192,39.41320252,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,216,1,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,288,1,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,0,7500000,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,48,5387518206,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,192,61583760166,FALSE,Replete,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,0,500000,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,24,778683.9882,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,48,1062756.866,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,120,1501841.51,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,144,1410150.582,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,168,1330922.699,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,192,976265.786,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,216,757958.4466,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,H,FALSE,288,230665.6302,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,0,7500000,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,48,58245879,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,192,17163184030,FALSE,Fe limited,Chaetoceros tenuissimus
+Kranzler2021,V,FALSE,288,10198695881,FALSE,Fe limited,Chaetoceros tenuissimus
