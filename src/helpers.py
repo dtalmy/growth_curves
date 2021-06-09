@@ -6,7 +6,7 @@ import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
 from define_models import *
 
-def get_models(df):
+def load_priors():
 
     # log-transformed priors
     mu_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
@@ -19,11 +19,19 @@ def get_models(df):
                         hyperparameters={'s':2,'scale':.1})
     tau_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
                        hyperparameters={'s':2,'scale':1})
+    
+    return mu_prior,phi_prior,beta_prior,lam_prior,tau_prior
+
+
+def get_models(df,predname='V'):
+
+    # log-transformed priors
+    mu_prior,phi_prior,beta_prior,lam_prior,tau_prior = load_priors()
 
     # initiate class with no infection states
     zeroI=ODElib.ModelFramework(ODE=zero_i,
                           parameter_names=['mu','phi','beta'],
-                          state_names = ['H','V'],
+                          state_names = ['H',predname],
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -34,7 +42,7 @@ def get_models(df):
     # one infection statea
     oneI=ODElib.ModelFramework(ODE=one_i,#Changing the ODE
                           parameter_names=['mu','phi','beta','lam'],#notice we needed to add lam
-                          state_names = ['S','I1','V'],# we needed to add infection state 1
+                          state_names = ['S','I1',predname],# we needed to add infection state 1
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -47,7 +55,7 @@ def get_models(df):
     # two infection states
     twoI=ODElib.ModelFramework(ODE=two_i,#changing the ODE
                           parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','V'],# we needed to add infection state 12
+                          state_names = ['S','I1','I2',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -61,7 +69,7 @@ def get_models(df):
     # three infection states
     threeI=ODElib.ModelFramework(ODE=three_i,#changing the ODE
                           parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3','V'],# we needed to add infection state 12
+                          state_names = ['S','I1','I2','I3',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -75,7 +83,7 @@ def get_models(df):
     # four infection states
     fourI=ODElib.ModelFramework(ODE=four_i,#changing the ODE
                           parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3','I4','V'],# we needed to add infection state 12
+                          state_names = ['S','I1','I2','I3','I4',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -88,7 +96,7 @@ def get_models(df):
     # five infection states
     fiveI=ODElib.ModelFramework(ODE=five_i,#changing the ODE
                           parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3','I4','I5','V'],# we needed to add infection state 12
+                          state_names = ['S','I1','I2','I3','I4','I5',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -158,8 +166,8 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=500000,
-                       cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
+                       cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
 # takes a dictionary of model objects and plots them
@@ -302,17 +310,17 @@ def get_params_from_csv(model,uid):
     return model
 
 # master function to fit all datasets
-def fit_all_dir(df,DIRpdf='../figures/'):
+def fit_all_dir(df,DIRpdf='../figures/',predname='V'):
     uid = df.index.unique()[0]
     tpdf = PdfPages(DIRpdf+uid+'.pdf')
-    models = get_models(df)
+    models = get_models(df,predname=predname)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
         get_params_from_csv(models[a],uid)
         params = models[a].get_pnames()
         vals = models[a].get_parameters()
         chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
-        posterior = get_posteriors(models[a],chain_inits)
+        posterior = get_posteriors(models[a])
         set_optimal_parameters(models[a],posterior)
         mod = models[a].integrate(predict_obs=True,as_dataframe=False)
         fs = models[a].get_fitstats(mod)
@@ -328,14 +336,14 @@ def fit_all_dir(df,DIRpdf='../figures/'):
     f1,ax1 = plot_infection_dynamics(models)
     f2,ax2 = plot_posteriors(posteriors)
     f3,ax3 = plot_stats(stats)
-    f4,ax4 = plot_residuals(models[bestmod])
+    #f4,ax4 = plot_residuals(models[bestmod])
     f1.suptitle(uid)
     f2.suptitle(uid)
     f3.suptitle(uid)
     tpdf.savefig(f1)
     tpdf.savefig(f2)
     tpdf.savefig(f3)
-    tpdf.savefig(f4)
+    #tpdf.savefig(f4)
     for (m,p) in zip(models.values(),posteriors.values()):
         fa,aa = plot_posterior_hists(m,p)
         fb,ab = plot_posterior_facet(m,p)
