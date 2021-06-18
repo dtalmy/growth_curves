@@ -6,7 +6,7 @@ import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
 from define_models import *
 
-def load_priors():
+def load_priors(df):
 
     # log-transformed priors
     mu_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
@@ -20,41 +20,52 @@ def load_priors():
     tau_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
                        hyperparameters={'s':2,'scale':1})
     
-    return mu_prior,phi_prior,beta_prior,lam_prior,tau_prior
+    # initial values
+    H0_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
+                      hyperparameters={'s':1,'scale':df[df['organism']=='H'].abundance[0]})
+
+    V0_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
+                      hyperparameters={'s':1,'scale':df[df['organism']=='V'].abundance[0]})
+
+    return mu_prior,phi_prior,beta_prior,lam_prior,tau_prior,H0_prior,V0_prior
 
 
 def get_models(df,predname='V'):
 
     # log-transformed priors
-    mu_prior,phi_prior,beta_prior,lam_prior,tau_prior = load_priors()
+    mu_prior,phi_prior,beta_prior,lam_prior,tau_prior,H0_prior,V0_prior= load_priors(df)
 
     # initiate class with no infection states
     zeroI=ODElib.ModelFramework(ODE=zero_i,
-                          parameter_names=['mu','phi','beta'],
+                          parameter_names=['mu','phi','beta','H0','V0'],
                           state_names = ['H',predname],
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           t_steps=288
                          )
 
     # one infection statea
     oneI=ODElib.ModelFramework(ODE=one_i,#Changing the ODE
-                          parameter_names=['mu','phi','beta','lam'],#notice we needed to add lam
+                          parameter_names=['mu','phi','beta','lam','H0','V0'],#notice we needed to add lam
                           state_names = ['S','I1',predname],# we needed to add infection state 1
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
                           lam=lam_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1']},#here, we are saying H is a summation of S and I1
                           S=df[df['organism']=='H']['abundance'][0]
                          )
 
     # two infection states
     twoI=ODElib.ModelFramework(ODE=two_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
+                          parameter_names=['mu','phi','beta','lam','tau','H0','V0'],#notice we needed to add tau
                           state_names = ['S','I1','I2',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
@@ -62,13 +73,15 @@ def get_models(df,predname='V'):
                           beta = beta_prior.copy(),
                           lam = lam_prior.copy(),
                           tau = tau_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1','I2']},#here, we are saying H= S+I1+I2
                           S=df[df['organism']=='H']['abundance'][0]
                          )
 
     # three infection states
     threeI=ODElib.ModelFramework(ODE=three_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
+                          parameter_names=['mu','phi','beta','lam','tau','H0','V0'],#notice we needed to add tau
                           state_names = ['S','I1','I2','I3',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
@@ -76,13 +89,15 @@ def get_models(df,predname='V'):
                           beta = beta_prior.copy(),
                           lam=lam_prior.copy(),
                           tau = tau_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1','I2','I3']},#here, we are saying H= S+I1+I2
                           S=df[df['organism']=='H']['abundance'][0]
                          )
 
     # four infection states
     fourI=ODElib.ModelFramework(ODE=four_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
+                          parameter_names=['mu','phi','beta','lam','tau','H0','V0'],#notice we needed to add tau
                           state_names = ['S','I1','I2','I3','I4',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
@@ -90,12 +105,14 @@ def get_models(df,predname='V'):
                           beta = beta_prior.copy(),
                           lam=lam_prior.copy(),
                           tau = tau_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1','I2','I3','I4']},#here, we are saying H= S+I1+I2
                           S=df[df['organism']=='H']['abundance'][0]
                          )
     # five infection states
     fiveI=ODElib.ModelFramework(ODE=five_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau'],#notice we needed to add tau
+                          parameter_names=['mu','phi','beta','lam','tau','H0','V0'],#notice we needed to add tau
                           state_names = ['S','I1','I2','I3','I4','I5',predname],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
@@ -103,6 +120,8 @@ def get_models(df,predname='V'):
                           beta = beta_prior.copy(),
                           lam = lam_prior.copy(),
                           tau = tau_prior.copy(),
+                          H0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1','I2','I3','I4','I5']},#here, we are saying H= S+I1+I2
                           S=df[df['organism']=='H']['abundance'][0]
                          )
@@ -166,7 +185,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=50000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
@@ -255,6 +274,8 @@ def set_optimal_parameters(model,posteriors):
     im = posteriors.loc[posteriors.chi==min(posteriors.chi)].index[0]
     pdic = posteriors.loc[im][model.get_pnames()].to_dict()
     model.set_parameters(**posteriors.loc[im][model.get_pnames()].to_dict())
+    model.set_inits(**{'H':posteriors.loc[im][model.get_pnames()].to_dict()['H0']})
+    model.set_inits(**{'V':posteriors.loc[im][model.get_pnames()].to_dict()['V0']})
 
 def plot_residuals(model,prefig=False):
     res = get_residuals(model)
@@ -306,6 +327,8 @@ def print_params_to_csv(model,uid):
 def get_params_from_csv(model,uid):
     fname = '../data/params/initial/'+uid + '_' + model.get_model().__name__ + '_params.csv'
     pframe = pd.read_csv(fname,index_col='id')
+    #pframe['H0'] = model.df.loc['H'].abundance[0]
+    #pframe['V0'] = model.df.loc['V'].abundance[0]
     model.set_parameters(**pframe.loc[uid][model.get_pnames()].to_dict())
     return model
 
