@@ -186,7 +186,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=50000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
@@ -275,8 +275,8 @@ def set_optimal_parameters(model,posteriors):
     im = posteriors.loc[posteriors.chi==min(posteriors.chi)].index[0]
     set_param_by_index(model,posteriors,im)
 
-def set_param_by_index(model,posteriors):
-    im = posteriors.loc[posteriors.chi==min(posteriors.chi)].index[0]
+def set_random_param(model,posteriors):
+    im = rd.choice(posteriors.index)
     set_param_by_index(model,posteriors,im)
 
 def set_param_by_index(model,posteriors,im):
