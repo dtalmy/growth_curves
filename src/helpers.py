@@ -183,10 +183,15 @@ def plot_chi_trace(model,posteriors):
     f.suptitle(model.get_model().__name__)
     return(f,ax)
 
+#def plot_hist_line(data,ax):
+#    f,axd = py.subplots()
+#    n,bins,patches = axd.hist(data,alpha=0.5,bins=100,zorder=1,density=True)
+#    ax.plot(bins[:-1],n)
+#    py.close(f)
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=500000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
