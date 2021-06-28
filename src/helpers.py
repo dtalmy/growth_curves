@@ -254,7 +254,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=10000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
@@ -405,10 +405,14 @@ def print_params_to_csv(model,uid):
 def get_params_from_csv(model,uid):
     fname = '../data/params/initial/'+uid + '_' + model.get_model().__name__ + '_params.csv'
     pframe = pd.read_csv(fname,index_col='id')
-    #pframe['S0'] = model.df.loc['H'].abundance[0]
-    #pframe['V0'] = model.df.loc['V'].abundance[0]
     if 'lam' in pframe.columns:
         pframe = pframe.rename(columns={'lam':'tau'})
+    if 'S0' in pframe.columns:
+        pframe['S0'] = model.df.loc['H'].abundance[0]
+    if 'H0' in pframe.columns:
+        pframe['H0'] = model.df.loc['H'].abundance[0]
+    if 'V0' in pframe.columns:
+        pframe['V0'] = model.df.loc['V'].abundance[0]
     model.set_parameters(**pframe.loc[uid][model.get_pnames()].to_dict())
     return model
 
