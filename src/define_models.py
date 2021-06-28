@@ -10,58 +10,138 @@ def zero_i(y,t,ps):
 
 # one infected classes
 def one_i(y,t,ps):
-    mu,phi,beta,lam=ps[0],ps[1],ps[2],ps[3]
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
     S,I1,V = y[0],y[1],y[2]
     dSdt = mu*S - phi*S*V
-    dI1dt = phi*S*V - I1*lam
-    dVdt = beta*I1*lam - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dVdt = beta*I1/tau - phi*S*V
     return [dSdt,dI1dt,dVdt]
 
 # two infected classes
 def two_i(y,t,ps):
-    mu,phi,beta,tau,lam=ps[0],ps[1],ps[2],ps[3],ps[4]
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
     S,I1,I2,V = y[0],y[1],y[2],y[3]
     dSdt = mu*S - phi*S*V
     dI1dt = phi*S*V - I1/tau
-    dI2dt = I1/tau - I2*lam
-    dVdt = beta*I2*lam - phi*S*V
+    dI2dt = I1/tau - I2/tau
+    dVdt = beta*I2/tau - phi*S*V
     return [dSdt,dI1dt,dI2dt,dVdt]
 
 # three infected classes
 def three_i(y,t,ps):
-    mu,phi,beta,tau,lam=ps[0],ps[1],ps[2],ps[3],ps[4]
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
     S,I1,I2,I3,V = y[0],y[1],y[2],y[3],y[4]
     dSdt = mu*S - phi*S*V
     dI1dt = phi*S*V - I1/tau
     dI2dt = I1/tau - I2/tau
-    dI3dt = I2/tau - I3*lam
-    dVdt = beta*I3*lam - phi*S*V
+    dI3dt = I2/tau - I3/tau
+    dVdt = beta*I3/tau - phi*S*V
     return [dSdt,dI1dt,dI2dt,dI3dt,dVdt]
 
 # four infected classes
 def four_i(y,t,ps):
-    mu,phi,beta,tau,lam=ps[0],ps[1],ps[2],ps[3],ps[4]
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
     S,I1,I2,I3,I4,V = y[0],y[1],y[2],y[3],y[4],y[5]
     dSdt = mu*S - phi*S*V
     dI1dt = phi*S*V - I1/tau
     dI2dt = I1/tau - I2/tau
     dI3dt = I2/tau - I3/tau
-    dI4dt = I3/tau - I4*lam
-    dVdt = beta*I4*lam - phi*S*V
+    dI4dt = I3/tau - I4/tau
+    dVdt = beta*I4/tau - phi*S*V
     return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dVdt]
 
 # five infected classes
 def five_i(y,t,ps):
-    mu,phi,beta,tau,lam=ps[0],ps[1],ps[2],ps[3],ps[4]
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
     S,I1,I2,I3,I4,I5,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6]
     dSdt = mu*S - phi*S*V
     dI1dt = phi*S*V - I1/tau
     dI2dt = I1/tau - I2/tau
     dI3dt = I2/tau - I3/tau
     dI4dt = I3/tau - I4/tau
-    dI5dt = I4/tau - I5*lam
-    dVdt = beta*I5*lam - phi*S*V
+    dI5dt = I4/tau - I5/tau
+    dVdt = beta*I5/tau - phi*S*V
     return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dVdt]
+
+# five infected classes
+def six_i(y,t,ps):
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
+    S,I1,I2,I3,I4,I5,I6,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6],y[7]
+    dSdt = mu*S - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dI2dt = I1/tau - I2/tau
+    dI3dt = I2/tau - I3/tau
+    dI4dt = I3/tau - I4/tau
+    dI5dt = I4/tau - I5/tau
+    dI6dt = I5/tau - I6/tau
+    dVdt = beta*I6/tau - phi*S*V
+    return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dI6dt,dVdt]
+
+# five infected classes
+def seven_i(y,t,ps):
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
+    S,I1,I2,I3,I4,I5,I6,I7,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6],y[7],y[8]
+    dSdt = mu*S - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dI2dt = I1/tau - I2/tau
+    dI3dt = I2/tau - I3/tau
+    dI4dt = I3/tau - I4/tau
+    dI5dt = I4/tau - I5/tau
+    dI6dt = I5/tau - I6/tau
+    dI7dt = I6/tau - I7/tau
+    dVdt = beta*I7/tau - phi*S*V
+    return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dI6dt,dI7dt,dVdt]
+
+# five infected classes
+def eight_i(y,t,ps):
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
+    S,I1,I2,I3,I4,I5,I6,I7,I8,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6],y[7],y[8],y[9]
+    dSdt = mu*S - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dI2dt = I1/tau - I2/tau
+    dI3dt = I2/tau - I3/tau
+    dI4dt = I3/tau - I4/tau
+    dI5dt = I4/tau - I5/tau
+    dI6dt = I5/tau - I6/tau
+    dI7dt = I6/tau - I7/tau
+    dI8dt = I7/tau - I8/tau
+    dVdt = beta*I8/tau - phi*S*V
+    return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dI6dt,dI7dt,dI8dt,dVdt]
+
+# five infected classes
+def nine_i(y,t,ps):
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
+    S,I1,I2,I3,I4,I5,I6,I7,I8,I9,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6],y[7],y[8],y[9],y[10]
+    dSdt = mu*S - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dI2dt = I1/tau - I2/tau
+    dI3dt = I2/tau - I3/tau
+    dI4dt = I3/tau - I4/tau
+    dI5dt = I4/tau - I5/tau
+    dI6dt = I5/tau - I6/tau
+    dI7dt = I6/tau - I7/tau
+    dI8dt = I7/tau - I8/tau
+    dI9dt = I8/tau - I9/tau
+    dVdt = beta*I9/tau - phi*S*V
+    return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dI6dt,dI7dt,dI8dt,dI9dt,dVdt]
+
+# five infected classes
+def ten_i(y,t,ps):
+    mu,phi,beta,tau=ps[0],ps[1],ps[2],ps[3]
+    S,I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,V = y[0],y[1],y[2],y[3],y[4],y[5],y[6],y[7],y[8],y[9],y[10],y[11]
+    dSdt = mu*S - phi*S*V
+    dI1dt = phi*S*V - I1/tau
+    dI2dt = I1/tau - I2/tau
+    dI3dt = I2/tau - I3/tau
+    dI4dt = I3/tau - I4/tau
+    dI5dt = I4/tau - I5/tau
+    dI6dt = I5/tau - I6/tau
+    dI7dt = I6/tau - I7/tau
+    dI8dt = I7/tau - I8/tau
+    dI9dt = I8/tau - I9/tau
+    dI10dt = I9/tau - I10/tau
+    dVdt = beta*I10/tau - phi*S*V
+    return [dSdt,dI1dt,dI2dt,dI3dt,dI4dt,dI5dt,dI6dt,dI7dt,dI8dt,dI9dt,dI10dt,dVdt]
 
 # five infected classes + resistance class
 def r_five_i(y,t,ps):

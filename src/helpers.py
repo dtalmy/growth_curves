@@ -16,8 +16,6 @@ def load_priors(df):
                        hyperparameters={'s':3,'scale':1e-8})
     beta_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
                         hyperparameters={'s':1,'scale':25})
-    lam_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
-                        hyperparameters={'s':2,'scale':.1})
     tau_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
                        hyperparameters={'s':2,'scale':1})
     
@@ -28,18 +26,18 @@ def load_priors(df):
     V0_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
                       hyperparameters={'s':1,'scale':df[df['organism']=='V'].abundance[0]})
 
-    return mu_prior,phi_prior,beta_prior,lam_prior,tau_prior,H0_prior,V0_prior
+    return mu_prior,phi_prior,beta_prior,tau_prior,H0_prior,V0_prior
 
 
-def get_models(df,predname='V'):
+def get_models(df):
 
     # log-transformed priors
-    mu_prior,phi_prior,beta_prior,lam_prior,tau_prior,H0_prior,V0_prior= load_priors(df)
+    mu_prior,phi_prior,beta_prior,tau_prior,H0_prior,V0_prior= load_priors(df)
 
     # initiate class with no infection states
     zeroI=ODElib.ModelFramework(ODE=zero_i,
                           parameter_names=['mu','phi','beta','H0','V0'],
-                          state_names = ['H',predname],
+                          state_names = ['H','V'],
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
@@ -51,13 +49,13 @@ def get_models(df,predname='V'):
 
     # one infection statea
     oneI=ODElib.ModelFramework(ODE=one_i,#Changing the ODE
-                          parameter_names=['mu','phi','beta','lam','S0','V0'],#notice we needed to add lam
-                          state_names = ['S','I1',predname],# we needed to add infection state 1
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],
+                          state_names = ['S','I1','V'],# we needed to add infection state 1
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
-                          lam=lam_prior.copy(),
+                          tau=tau_prior.copy(),
                           S0 = H0_prior.copy(),
                           V0 = V0_prior.copy(),
                           state_summations={'H':['S','I1']},#here, we are saying H is a summation of S and I1
@@ -66,13 +64,12 @@ def get_models(df,predname='V'):
 
     # two infection states
     twoI=ODElib.ModelFramework(ODE=two_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau','S0','V0'],#notice we needed to add tau
-                          state_names = ['S','I1','I2',predname],# we needed to add infection state 12
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','V'],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
-                          lam = lam_prior.copy(),
                           tau = tau_prior.copy(),
                           S0 = H0_prior.copy(),
                           V0 = V0_prior.copy(),
@@ -82,13 +79,12 @@ def get_models(df,predname='V'):
 
     # three infection states
     threeI=ODElib.ModelFramework(ODE=three_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau','S0','V0'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3',predname],# we needed to add infection state 12
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','V'],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
-                          lam=lam_prior.copy(),
                           tau = tau_prior.copy(),
                           S0 = H0_prior.copy(),
                           V0 = V0_prior.copy(),
@@ -98,13 +94,12 @@ def get_models(df,predname='V'):
 
     # four infection states
     fourI=ODElib.ModelFramework(ODE=four_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau','S0','V0'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3','I4',predname],# we needed to add infection state 12
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','V'],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
-                          lam=lam_prior.copy(),
                           tau = tau_prior.copy(),
                           S0 = H0_prior.copy(),
                           V0 = V0_prior.copy(),
@@ -113,13 +108,12 @@ def get_models(df,predname='V'):
                          )
     # five infection states
     fiveI=ODElib.ModelFramework(ODE=five_i,#changing the ODE
-                          parameter_names=['mu','phi','beta','lam','tau','S0','V0'],#notice we needed to add tau
-                          state_names = ['S','I1','I2','I3','I4','I5',predname],# we needed to add infection state 12
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','V'],# we needed to add infection state 12
                           dataframe=df,
                           mu = mu_prior.copy(),
                           phi = phi_prior.copy(),
                           beta = beta_prior.copy(),
-                          lam = lam_prior.copy(),
                           tau = tau_prior.copy(),
                           S0 = H0_prior.copy(),
                           V0 = V0_prior.copy(),
@@ -127,7 +121,82 @@ def get_models(df,predname='V'):
                           S=df[df['organism']=='H']['abundance'][0]
                          )
 
-    return {'zeroI':zeroI,'oneI':oneI,'twoI':twoI,'threeI':threeI,'fourI':fourI,'fiveI':fiveI}
+    # eight infection states
+    sixI=ODElib.ModelFramework(ODE=six_i,#changing the ODE
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','I6','V'],
+                          dataframe=df,
+                          mu = mu_prior.copy(),
+                          phi = phi_prior.copy(),
+                          beta = beta_prior.copy(),
+                          tau = tau_prior.copy(),
+                          S0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
+                          state_summations={'H':['S','I1','I2','I3','I4','I5','I6']},
+                          S=df[df['organism']=='H']['abundance'][0]
+                         )
+
+    # eight infection states
+    sevenI=ODElib.ModelFramework(ODE=seven_i,#changing the ODE
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','I6','I7','V'],
+                          dataframe=df,
+                          mu = mu_prior.copy(),
+                          phi = phi_prior.copy(),
+                          beta = beta_prior.copy(),
+                          tau = tau_prior.copy(),
+                          S0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
+                          state_summations={'H':['S','I1','I2','I3','I4','I5','I6','I7']},
+                          S=df[df['organism']=='H']['abundance'][0]
+                         )
+
+    # eight infection states
+    eightI=ODElib.ModelFramework(ODE=eight_i,#changing the ODE
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','I6','I7','I8','V'],
+                          dataframe=df,
+                          mu = mu_prior.copy(),
+                          phi = phi_prior.copy(),
+                          beta = beta_prior.copy(),
+                          tau = tau_prior.copy(),
+                          S0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
+                          state_summations={'H':['S','I1','I2','I3','I4','I5','I6','I7','I8']},
+                          S=df[df['organism']=='H']['abundance'][0]
+                         )
+
+    # nine infection states
+    nineI=ODElib.ModelFramework(ODE=nine_i,#changing the ODE
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','I6','I7','I8','I9','V'],
+                          dataframe=df,
+                          mu = mu_prior.copy(),
+                          phi = phi_prior.copy(),
+                          beta = beta_prior.copy(),
+                          tau = tau_prior.copy(),
+                          S0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
+                          state_summations={'H':['S','I1','I2','I3','I4','I5','I6','I7','I8','I9']},
+                          S=df[df['organism']=='H']['abundance'][0]
+                         )
+
+    # ten infection states
+    tenI=ODElib.ModelFramework(ODE=ten_i,#changing the ODE
+                          parameter_names=['mu','phi','beta','tau','S0','V0'],#notice we needed to add tau
+                          state_names = ['S','I1','I2','I3','I4','I5','I6','I7','I8','I9','I10','V'],
+                          dataframe=df,
+                          mu = mu_prior.copy(),
+                          phi = phi_prior.copy(),
+                          beta = beta_prior.copy(),
+                          tau = tau_prior.copy(),
+                          S0 = H0_prior.copy(),
+                          V0 = V0_prior.copy(),
+                          state_summations={'H':['S','I1','I2','I3','I4','I5','I6','I7','I8','I9','I10']},#here, we are saying H= S+I1+I2
+                          S=df[df['organism']=='H']['abundance'][0]
+                         )
+
+    return {'zeroI':zeroI,'oneI':oneI,'twoI':twoI,'threeI':threeI,'fourI':fourI,'fiveI':fiveI,'sixI':sixI,'sevenI':sevenI,'eightI':eightI,'nineI':nineI,'tenI':tenI}
 
 def plot_posterior_hists(model,posterior):
     pnames = model.get_pnames()
@@ -182,12 +251,6 @@ def plot_chi_trace(model,posteriors):
     ax.set_ylabel('chi')
     f.suptitle(model.get_model().__name__)
     return(f,ax)
-
-#def plot_hist_line(data,ax):
-#    f,axd = py.subplots()
-#    n,bins,patches = axd.hist(data,alpha=0.5,bins=100,zorder=1,density=True)
-#    ax.plot(bins[:-1],n)
-#    py.close(f)
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
@@ -344,14 +407,16 @@ def get_params_from_csv(model,uid):
     pframe = pd.read_csv(fname,index_col='id')
     #pframe['S0'] = model.df.loc['H'].abundance[0]
     #pframe['V0'] = model.df.loc['V'].abundance[0]
+    if 'lam' in pframe.columns:
+        pframe = pframe.rename(columns={'lam':'tau'})
     model.set_parameters(**pframe.loc[uid][model.get_pnames()].to_dict())
     return model
 
 # master function to fit all datasets
-def fit_all_dir(df,DIRpdf='../figures/',predname='V'):
+def fit_all_dir(df,DIRpdf='../figures/'):
     uid = df.index.unique()[0]
     tpdf = PdfPages(DIRpdf+uid+'.pdf')
-    models = get_models(df,predname=predname)
+    models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
         get_params_from_csv(models[a],uid)
