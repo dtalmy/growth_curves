@@ -254,7 +254,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=10000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
@@ -423,7 +423,11 @@ def fit_all_dir(df,DIRpdf='../figures/'):
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
-        get_params_from_csv(models[a],uid)
+        print(a)
+        if a in ['oneI','twoI','threeI','fourI','fiveI','zeroI']:
+            get_params_from_csv(models[a],uid)
+        else:
+            get_params_from_csv(models['fiveI'],uid)
         params = models[a].get_pnames()
         vals = models[a].get_parameters()
         chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
