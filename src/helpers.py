@@ -423,11 +423,7 @@ def fit_all_dir(df,DIRpdf='../figures/'):
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
     for a in models.keys():
-        print(a)
-        if a in ['oneI','twoI','threeI','fourI','fiveI','zeroI']:
-            get_params_from_csv(models[a],uid)
-        else:
-            get_params_from_csv(models['fiveI'],uid)
+        get_params_from_csv(models[a],uid)
         params = models[a].get_pnames()
         vals = models[a].get_parameters()
         chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
