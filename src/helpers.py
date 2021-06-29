@@ -21,10 +21,10 @@ def load_priors(df):
     
     # initial values
     H0_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
-                      hyperparameters={'s':1,'scale':df[df['organism']=='H'].abundance[0]})
+                      hyperparameters={'s':0.1,'scale':df[df['organism']=='H'].abundance[0]})
 
     V0_prior=ODElib.parameter(stats_gen=scipy.stats.lognorm,
-                      hyperparameters={'s':1,'scale':df[df['organism']=='V'].abundance[0]})
+                      hyperparameters={'s':0.1,'scale':df[df['organism']=='V'].abundance[0]})
 
     return mu_prior,phi_prior,beta_prior,tau_prior,H0_prior,V0_prior
 
