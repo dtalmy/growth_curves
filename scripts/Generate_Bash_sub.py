@@ -2,6 +2,9 @@ import pylab as py
 import pandas as pd
 import numpy as np
 import scipy
+import sys
+sys.path.append('../src')
+from helpers import *
 import argparse
 import subprocess
 import os
@@ -19,13 +22,7 @@ def main(VALver):
     #
     # read data
     #
-    master_df = pd.read_csv('../data/input/processed/processed_data.csv',index_col='id')
-    abiotic_treatment_df = pd.read_csv('../data/input/preprocessed/reu_2019/treatments.csv',index_col='id')
-    abiotic_treatment_df = abiotic_treatment_df[abiotic_treatment_df['treatment']=='Replete']
-    nissimov_df = pd.read_csv('../data/input/preprocessed/nissimov/with_reps.csv',index_col='id')
-    nissimov_df['abundance'] = np.mean(np.r_[[nissimov_df[i] for i in ['rep1','rep2','rep3']]],axis=0)
-    master_df = pd.concat((master_df,abiotic_treatment_df,nissimov_df))
-    treatments = master_df.query('control==False').copy() # remove controls
+    main_df = get_master_dataframe()
     tids = treatments.index.unique() # unique ids
     print('Found tids:\n')
     for did in tids:
