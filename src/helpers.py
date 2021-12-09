@@ -7,6 +7,31 @@ import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
 from define_models import *
 
+# read data
+def get_master_dataframe():
+    main_df = pd.read_csv('../data/input/lab_experiments/processed_data.csv',index_col='id')
+    abiotic_treatment_df = pd.read_csv('../data/input/lab_experiments/treatments.csv',index_col='id')
+    abiotic_treatment_df = abiotic_treatment_df[abiotic_treatment_df['treatment']=='Replete']
+    nissimov_df = pd.read_csv('../data/input/lab_experiments/with_reps.csv',index_col='id')
+    nissimov_df['abundance'] = np.mean(np.r_[[nissimov_df[i] for i in ['rep1','rep2','rep3']]],axis=0)
+    main_df = pd.concat((main_df,abiotic_treatment_df,nissimov_df))
+    main_df = main_df.query('control==False').copy() # remove controls
+    metadata = pd.read_csv('../data/input/Hinson_allMaster_working_test.csv',index_col='id')
+    main_df = main_df.merge(metadata,on='id')
+    tids = main_df.index.unique() # unique ids
+    main_df_corrected = pd.DataFrame()
+    # loop over each datset, apply uncertainty and correct for non-zero start times
+    for did in tids:
+        print(did)
+        df = main_df.loc[did].copy()
+        df.loc[:,'log_sigma'] = 0.2 # define uncertainty in data 
+        df.loc[df.organism == 'H', 'time'] = df.loc[df.organism == 'H', 'time'].copy() -\
+                min(df.loc[df.organism == 'H', 'time']) # remove non-zero initial timepoints
+        df.loc[df.organism == 'V', 'time'] = df.loc[df.organism == 'V', 'time'].copy() -\
+                min(df.loc[df.organism == 'V', 'time']) # same for virus
+        main_df_corrected = pd.concat((main_df_corrected,df))
+    return main_df
+
 def load_priors(df):
 
     # log-transformed priors
@@ -393,6 +418,88 @@ def plot_residuals(model,prefig=False):
     f.suptitle('Residuals for model with lowest AIC')
     f.subplots_adjust(hspace=0.3,wspace=0.3)
     return(f,ax)
+
+#############################################
+# Encounter functions. Take host and/or prey
+# radius in microns and returns:
+# calc_visc(): temp. corrected viscosity, g micron-1 s-1
+# vir_carb(): virus carbon quota, fmol C
+# graz_carb(): grazer carbon quota, fmol C
+# calc_diff(): diffusivity, micron^2 s-1
+# calc_swim(): swim speed, micron s-1
+# enc_brown():  enc kernel micron^3 s-1
+# enc_swim(): enc kernel micron^3 s-1
+#############################################
+
+def calc_visc(T):
+        T = T - 273.14 # temp in celcius
+        eta = 4.2844e-5 + 1/(0.157*(T+64.993)**2-91.296) # kg m-1 s-1
+        eta = eta *1e+3/1e+6 # g micron-1 s-1
+        return eta
+
+def vir_carb(rpred): # Jover et al., 2014
+        pi = 3.142
+        avagadro = 6.022e+23 # avagadros number 
+        rc = rpred * 1000.0 # radius in nm
+        Chead = 41*(rc-2.5)**3.0 + 130.0*(7.5*rc**2.0 - 18.75*rc + 15.63) # atoms per V
+        Cvir = Chead / avagadro * 1000.0 * 1e+12 # fmol C per virus
+        return Cvir
+
+def graz_carb(rpred):
+        a = 10 ** -0.547
+        b = 0.9
+        Vs = 4.0/3.0*np.pi*rpred**3.0 # volume in micron**3
+        Cgraz = a * Vs ** b # pg C per individual
+        Cgraz = Cgraz * 1e-9 /12.0 * 1e+12 # fmol C per individual
+        return Cgraz
+
+def calc_diff(r,T=283.15):
+        K = 1.38e-16 # g cm2 s-2 degrees Kelvin-1 - stefan bolzman constant
+        K = K * (1e+4)**2 # 1cm2 = (1e+4)**2 micron2
+        eta = 1e-2 # g cm-1 s-1
+        eta = eta / (1e+4) # 1 cm-1 = 1 / (1e+4) micron-1
+        eta = calc_visc(T)
+        D = K * T / ( 6 * np.pi * eta * r) # micron^2 s-1
+        return D
+
+def calc_detect(r,det_fac=3):
+        dfac = det_fac*r # detection length in m (m from edge of organism)
+        return dfac
+
+#def calc_swim(r,swim_fac):
+#       u = swim_fac*r
+#       return u
+
+def calc_swim(r,swim_fac):
+        esd = r/1e+4*2 # esd in cm
+        lsw = 0.39+0.79*log(esd) # log swim speed in cm s-1
+        u = exp(lsw) # swim speed in cm s-1
+        u = swim_fac*u*1e+4 # account for sensitivity to swimming speed
+        return u
+
+def enc_brown(rprey,rpred,upreyswim=True,ufac=1.0,Dpreydiff=True,T=283.15):
+        if Dpreydiff==True:
+                Dprey = calc_diff(rprey)
+        else:
+                Dprey = 0.0
+        if upreyswim==True:
+                uprey = calc_swim(rprey,ufac)
+        else:
+                uprey = 0.0
+        Dpred = calc_diff(rpred,T)
+        rhov = np.pi*(rprey+rpred)**2.0*uprey + 4*np.pi*(rprey+rpred)*(Dprey+Dpred)
+        return rhov
+
+def enc_swim(rprey,rpred,rdetectfac=3.0,upreyswim=True,ufac=1.0,Dpreydiff=True):
+        if Dpreydiff==True:
+                Dprey = calc_diff(rprey)
+        else:
+                Dprey = 0.0
+        if upreyswim==True:
+                uprey = calc_swim(rprey,0.39)
+        else:
+                uprey = 0.0
+        upred = calc_swim(rpred,ufac)
 
 def print_params_to_csv(model,uid):
     fname = '../data/params/final/'+uid + '_' + model.get_model().__name__ + '_params.csv'
