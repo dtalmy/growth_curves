@@ -30,7 +30,7 @@ def get_master_dataframe():
         df.loc[df.organism == 'V', 'time'] = df.loc[df.organism == 'V', 'time'].copy() -\
                 min(df.loc[df.organism == 'V', 'time']) # same for virus
         main_df_corrected = pd.concat((main_df_corrected,df))
-    return main_df
+    return main_df_corrected
 
 def load_priors(df):
 
@@ -279,7 +279,7 @@ def plot_chi_trace(model,posteriors):
 
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
-    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=500000,
+    posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
                        cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
     return posteriors
 
