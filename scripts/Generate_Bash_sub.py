@@ -23,7 +23,7 @@ def main(VALver):
     # read data
     #
     main_df = get_master_dataframe()
-    tids = treatments.index.unique() # unique ids
+    tids = main_df.index.unique() # unique ids
     print('Found tids:\n')
     for did in tids:
             print(did)
