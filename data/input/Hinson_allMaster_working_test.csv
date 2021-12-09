@@ -1,0 +1,35 @@
+id,VirusName,HostSpecies,HostGenus,HostClass,HostPhylum,Environment,Method,Source,Host.Size..um...low.,Host.Size..um...high.,Virus.Size..nm...d...low.,Virus.Size..nm...d...high.,Temp_C,Temp_K,Salinity
+Baudoux3,PgV-03T - Group 2a,Phaeocystis globosa,Phaeocystis,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Baudoux et al., 2005",5,7,100,100,15,288.15,35
+Baudoux32,PgV-01T - Group 2c,Phaeocystis globosa,Phaeocystis,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Baudoux et al., 2006",5,7,100,100,15,288.15,35
+Baudoux33,PgV-11T - Group 2b,Phaeocystis globosa,Phaeocystis,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Baudoux et al., 2007",5,7,100,100,15,288.15,35
+Baudoux34,PgV-09T - Group I,Phaeocystis globosa,Phaeocystis,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Baudoux et al., 2008",5,7,150,150,15,288.15,35
+Castberg24,EhV-99B1,Emiliania huxleyi,Emiliania,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Castberg et al., 2002",5,10,160,180,15,288.15,35
+Eissler40,CwNIV,Chaetoceros cf. wighamii,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,epiflourescence microscopy,"Eissler et al., 2009",7,18,22,28,15,288.15,35
+Gao41,PaV-LD,Planktothrix agardhii,Planktothrix,Cyanophyceae,Cyanobacteria,Freshwater,optical microscopy,"Gao et al., 2009",3.3,3.3,70,85,NA,NA,NA
+Johannessen68,HeV RF02,Haptolina ericina,Haptolina,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Johannessen et al., 2015",5,10,180,180,14,287.15,35
+Johannessen69,PkV RF02,Prymnesium kappa,Prymnesium,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Johannessen et al., 2016",4,6.5,160,160,14,287.15,35
+Johannessen70,PkV RF01,Prymnesium kappa,Prymnesium,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Johannessen et al., 2017",4,6.5,310,310,14,287.15,35
+Kim52,HpygDNAV,Heterocapsa pygmaea,Heterocapsa,Dinophyceae,Myzozoa,Marine,light microscopy / extinction dilution method,Kim et al. 2012,0.4,0.4,160,170,20,293.15,35
+Kim71,SpalV,Stephanopyxis palmeriana,Stephanopyxis,Bacillariophyceae,Ochrophyta,Marine,light microscopy / extinction dilution method,"Kim et al., 2015a",27,71,25,30,20,293.15,35
+Kim72,ScosV,Skeletonema costatum,Skeletonema,Bacillariophyceae,Ochrophyta,Marine,light microscopy / extinction dilution method,"Kimura and Tomaru, 2013",2,21,45,50,20,293.15,35
+Kimura54,Csp07DNAV,Chaetoceros sp.,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,optical microscopy / extinction dilution method,"Kimura and Tomaru, 2013",2,80,34,34,15,288.15,35
+Kimura66,CtenDNAV type II,Chaetoceros tenuissimus,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,extinction dilution method,"Kimura and Tomaru, 2015",3,5,37,37,15,288.15,35
+Kimura67,CtenRNAV type II,Chaetoceros tenuissimus,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,extinction dilution method,"Kimura and Tomaru, 2015",3,5,35,35,15,288.15,35
+Kranzler2021,CtenDNAV,Chaetoceros tenuissimus,Chaetoceros ,Bacillariophyceae,Ochrophyta,Marine,flow cytometry,"Kranzler et al., 2021",3,5,37,37,NA,NA,NA
+Maat2016a,PgV,Phaeocystis globosa,Phaeocystis ,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Maat et al., 2016",5,5,100,100,NA,NA,NA
+Maat2016b,MpV,Micromonas pusilla,Micromonas,Mamiellophyceae,Chlorophyta,Freshwater,flow cytometry,"Maat et al., 2016",2,2,104,118,NA,NA,NA
+Nagasaki29,RsRNAV,Rhizosolenia setigera,Rhizosolenia,Bacillariophyceae,Ochrophyta,Marine,optical microscopy / extinction dilution method,"Nagasaki et al., 2004",4,25,65,80,15,288.15,35
+Nagasaki42,TampV,Teleaulax amphioxeia,Teleaulax,Cryptophyceae,Cryptophyta,Marine,optical microscopy / extinction dilution method,"Nagasaki et al., 2009",12,15,203,203,20,293.15,35
+Nissimov2020a,Ehv18,Emiliania huxelyi,Emiliania,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Nissimov et al., 2019",5,10,160,180,15,288.15,35
+Nissimov2020a,Ehv99B1,Emiliania huxelyi,Emiliania,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Nissimov et al., 2019",5,10,160,180,15,288.15,35
+Nissimov2020a,Ehv207,Emiliania huxelyi,Emiliania,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Nissimov et al., 2019",5,10,160,180,15,288.15,35
+Sandaa26,PoV-01B,Pyramimonas orientalis,Pyramimonas,Pyramimonadophyceae,Chlorophyta,Marine,flow cytometry,Sandaa et al. 2001,4,6,200,200,15,288.15,35
+Slagter2016,PgV,Phaeocystis globosa,Phaeocystis ,Prymnesiophyceae,Haptophyta,Marine,flow cytometry,"Slagter et al., 2016",5,5,100,100,NA,NA,NA
+Slagter2016a,MpV,Micromonas pusilla,Micromonas,Mamiellophyceae,Chlorophyta,Freshwater,flow cytometry,"Slagter et al., 2017",2,2,104,118,NA,NA,NA
+Steenhauer2016,CrV,Cylindrospermopsis raciborskii,Cylindrospermopsis ,Cyanophyceae,Cyanobacteria,Freshwater,flow cytometry,"Steenhauer et al., 2016",1.7,4.2,65,65,NA,NA,NA
+Tomaru39,CdebDNAV,Chaetoceros debilis,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,extinction dilution method,"Tomaru et al., 2008",8,40,30,32,15,288.15,35
+Tomaru43,CsfrRNAV,Chaetoceros socialis f. radians,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,extinction dilution method,"Tomaru et al., 2009",2,14,22,22,15,288.15,35
+Tomaru51,ClorDNAV,Chaetoceros lorenzianus,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,optical microscopy,Tomaru et al. 2011,7,80,34,34,15,288.15,35
+Tomaru56,Csp03RNAV,Chaetoceros sp. strain SS08-C03,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,optical microscopy,Tomaru et al. 2013a,2,80,32,32,15,288.15,35
+Tomaru57,CsetDNAV,Chaetoceros setoensis,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,direct counting / extinction dilution method,Tomaru et al. 2013b,50,50,33,33,15,288.15,35
+Toyoda53,Csp05DNAV,Chaetoceros sp. strain TG07-C28,Chaetoceros,Bacillariophyceae,Ochrophyta,Marine,optical microscopy / extinction dilution method,"Toyoda et al., 2012",2,80,32,34,15,288.15,35
