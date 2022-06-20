@@ -280,7 +280,7 @@ def plot_chi_trace(model,posteriors):
 # retrieve posteriors
 def get_posteriors(model,chain_inits=2):
     posteriors = model.MCMC(chain_inits=chain_inits,iterations_per_chain=1000,
-                       cpu_cores=2,fitsurvey_samples=1000,sd_fitdistance=20.0)
+                       cpu_cores=2,fitsurvey_samples=10000,sd_fitdistance=20.0)
     return posteriors
 
 # takes a dictionary of model objects and plots them
@@ -529,12 +529,16 @@ def fit_all_dir(df,DIRpdf='../figures/'):
     tpdf = PdfPages(DIRpdf+uid+'.pdf')
     models = get_models(df)
     posteriors,stats,aics = {},{},{}
-    for a in models.keys():
+    posteriors_for_csv = pd.DataFrame()
+    for (a,b) in zip(models.keys(),range(len(models))):
         get_params_from_csv(models[a],uid)
         params = models[a].get_pnames()
         vals = models[a].get_parameters()
         chain_inits = pd.concat([pd.DataFrame(vals,columns=params)]*2)
         posterior = get_posteriors(models[a])
+        posterior['nstates_string'] = a
+        posterior['nstates_int'] = b
+        posteriors_for_csv = posteriors_for_csv.append(posterior)
         set_optimal_parameters(models[a],posterior)
         mod = models[a].integrate(predict_obs=True,as_dataframe=False)
         fs = models[a].get_fitstats(mod)
@@ -546,7 +550,7 @@ def fit_all_dir(df,DIRpdf='../figures/'):
     bestmod = [a for a in aics if aics[a] == minaic][0]
     bestposteriors = posteriors[bestmod]
     bestposteriors['bestmodel'] = bestmod
-    pd.concat(posteriors).to_csv('../data/output/'+uid+'.csv')
+    posteriors_for_csv.to_csv('../data/output/'+uid+'.csv')
     f1,ax1 = plot_infection_dynamics(models)
     f2,ax2 = plot_posteriors(posteriors)
     f3,ax3 = plot_stats(stats)
