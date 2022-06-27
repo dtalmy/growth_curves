@@ -30,6 +30,7 @@ echo OD_base   : $OD_base
 #
 #OD_base=pathlib.Path('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves/')
 # The helper functions have hard coded relative paths. It expects to be in scripts
+OD_base.mkdir(parents=True, exist_ok=True)
 os.chdir(OD_base / 'scripts')
 OD_subout=str('combined')
 pl_combined=OD_base / OD_subout

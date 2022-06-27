@@ -6,6 +6,9 @@ You can update using
 
 git pull
 
+you will also need ODElib and python 3.9+
+
+pip3 install git+https://github.com/SEpapoulis/ODElib#egg=ODElib
 
 Go to scripts directory
 
