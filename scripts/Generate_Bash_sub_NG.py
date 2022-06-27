@@ -10,6 +10,8 @@ import subprocess
 import os
 import stat
 import pathlib
+import time  
+
 
 def main(VALver):
     #########################################################
@@ -21,29 +23,37 @@ def main(VALver):
     print(dest_file)
     print('\n')
     ####
-    # OD_base is where the output will be written
-    OD_base=pathlib.Path('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves/')
+    # OD_base is where the individual TIDS will run and the combined data will be saved.
+    # edit basepath to control where the run will go
+    #
+    # setup a unique time tag, it does not need to be epoch time but gurantees unique and timestamped
+    # on linux terminal date -d @$epochtime convert back to date
+    # converting to int drop microseconds without floor
+    epochtime= str(int(time.time()))
+    basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves_')+epochtime
+    #
+    OD_base=pathlib.Path($basepath)
     # The helper functions have hard coded relative paths. It expects to be in scripts
     os.chdir(OD_base / 'scripts')
-    OD_subout=str('aaa')
-    pl_aaa=OD_base / OD_subout
-    pl_aaa.mkdir(parents=True, exist_ok=True)
+    OD_subout=str('combined')
+    pl_combined=OD_base / OD_subout
+    pl_combined.mkdir(parents=True, exist_ok=True)
     OD_figures=str('figures')
-    pl_figures=pl_aaa / OD_figures
+    pl_figures=pl_combined / OD_figures
     pl_figures.mkdir(parents=True, exist_ok=True)
     OD_params=str('params')
-    pl_params=pl_aaa / OD_params
+    pl_params=pl_combined / OD_params
     pl_params.mkdir(parents=True, exist_ok=True)
     #posteriors
     OD_posteriors=str('posteriors')
-    pl_posteriors=pl_aaa / OD_posteriors
+    pl_posteriors=pl_combined / OD_posteriors
     pl_posteriors.mkdir(parents=True, exist_ok=True)
     #
     #
     filename=str('Dsum_LineSum.png')
-    OD_unique=OD_base.joinpath(OD_subout)
+    
     OF_dest=OD_base /'scripts'/str(dest_file)
-    print('Out dir set to: ' + OD_unique.as_posix(), file = sys.stdout )
+    print('Out dir set to: ' + OD_base.as_posix(), file = sys.stdout )
     print('Out file script: ' + OF_dest.as_posix(), file = sys.stdout )
     
     
@@ -68,7 +78,7 @@ def main(VALver):
         writer.write('for i in \"${arr[@]}\"\n')
         writer.write('do\n')
         writer.write('   echo \"$i\"\n')
-        writer.write(str('   sbatch --export=VALtids=$i,VALoutpath=\"')+OD_unique.as_posix()+str('\"  qsub_tids_NG.sbatch  \n') )
+        writer.write(str('   sbatch --export=VALtids=$i,OD_base=\"')+OD_base.as_posix()+str('\"  qsub_tids_NG.sbatch  \n') )
         writer.write('done')
     #
     # Set file to be executible for both user and group
