@@ -17,11 +17,35 @@ source $ANACONDA3_SH
 conda activate PY39
 python3 -V
 module list
-OD_base='/lustre/isaac/proj/UTK0105/GrowthCurves/Test/growth_curves'
+# od base is passed on the submission line 
+#OD_base='/lustre/isaac/proj/UTK0105/GrowthCurves/Test/growth_curves'
 JOBID=$SLURM_JOB_ID
 echo JOBID : $JOBID
 echo VALtids   : $VALtids
-echo VALoutpath   : $VALoutpath
+echo OD_base   : $OD_base
+#
+# chk dir and make if needed.  This is overly redundent but if you edit submission script you would need to create these. Also created in the generation script.
+####
+# OD_base is where the individual TIDS will run and the combined data will be saved.
+#
+#OD_base=pathlib.Path('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves/')
+# The helper functions have hard coded relative paths. It expects to be in scripts
+os.chdir(OD_base / 'scripts')
+OD_subout=str('combined')
+pl_combined=OD_base / OD_subout
+pl_combined.mkdir(parents=True, exist_ok=True)
+OD_figures=str('figures')
+pl_figures=pl_combined / OD_figures
+pl_figures.mkdir(parents=True, exist_ok=True)
+OD_params=str('params')
+pl_params=pl_combined / OD_params
+pl_params.mkdir(parents=True, exist_ok=True)
+#posteriors
+OD_posteriors=str('posteriors')
+pl_posteriors=pl_combined / OD_posteriors
+pl_posteriors.mkdir(parents=True, exist_ok=True)
+#
+#######################
 #Setup run 
 cd $OD_base
 mkdir $OD_base/$JOBID
@@ -35,9 +59,12 @@ echo VALpdfname : $VALpdfname
 python3 single_tids_model.py $VALtids '../figures/'
 # mail/move/delete
 #mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
-cp ../data/output/* $OD_base/aaa/posteriors/
-cp ../figures/* $OD_base/aaa/figures/
-cp ../data/params/final/* $OD_base/aaa/params/
+#
+# copy output
+#
+cp ../data/output/* $OD_base/combined/posteriors/
+cp ../figures/* $OD_base/combined/figures/
+cp ../data/params/final/* $OD_base/combined/params/
 #make DIR readable by group
 chmod +R g+r $OD_base/aaa
 chmod +R g+r $OD_base/$JOBID
