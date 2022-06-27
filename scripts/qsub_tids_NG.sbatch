@@ -29,7 +29,10 @@ cd $OD_base/$JOBID
 git clone -b master https://github.com/dtalmy/growth_curves
 cd $OD_base/$JOBID/growth_curves/src 
 #
-#run mo
+#run model
+VALpdfname="tids_"$VALtids
+echo VALpdfname : $VALpdfname
+python3 single_tids_model.py $VALtids '../figures/'
 # mail/move/delete
 #mailx -a '../figures/'$PBS_JOBID'_test_selection.pdf' -s 'RESULTS_'$VALpdfname ecarr@utk.edu < /dev/null
 cp ../data/output/* $OD_base/aaa/posteriors/
