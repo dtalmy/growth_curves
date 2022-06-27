@@ -47,6 +47,7 @@ pl_posteriors.mkdir(parents=True, exist_ok=True)
 #
 #######################
 #Setup run 
+# jobid will unique for each tids run in the set 
 cd $OD_base
 mkdir $OD_base/$JOBID
 cd $OD_base/$JOBID
