@@ -32,7 +32,7 @@ def main(VALver):
     epochtime= str(int(time.time()))
     basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves_')+epochtime
     #
-    OD_base=pathlib.Path($basepath)
+    OD_base=pathlib.Path(basepath)
     # The helper functions have hard coded relative paths. It expects to be in scripts
     os.chdir(OD_base / 'scripts')
     OD_subout=str('combined')
