@@ -31,7 +31,7 @@ def main(VALver):
     # on linux terminal date -d @$epochtime convert back to date
     # converting to int drop microseconds without floor
     epochtime= str(int(time.time()))
-    basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves_')+epochtime
+    basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/RunTIDS_')+epochtime
     #
     OD_base=pathlib.Path(basepath)
     OD_base.mkdir(parents=True, exist_ok=True)
