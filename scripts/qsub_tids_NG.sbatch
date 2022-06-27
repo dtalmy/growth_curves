@@ -30,27 +30,26 @@ echo OD_base   : $OD_base
 #
 #OD_base=pathlib.Path('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves/')
 # The helper functions have hard coded relative paths. It expects to be in scripts
-OD_base.mkdir(parents=True, exist_ok=True)
-os.chdir(OD_base / 'scripts')
-OD_subout=str('combined')
-pl_combined=OD_base / OD_subout
-pl_combined.mkdir(parents=True, exist_ok=True)
-OD_figures=str('figures')
-pl_figures=pl_combined / OD_figures
-pl_figures.mkdir(parents=True, exist_ok=True)
-OD_params=str('params')
-pl_params=pl_combined / OD_params
-pl_params.mkdir(parents=True, exist_ok=True)
+mkdir -p $OD_base
+OD_subout='combined'
+pl_combined=$OD_base'/'$OD_subout
+mkdir -p $pl_combined
+OD_figures='figures'
+pl_figures=$pl_combined'/'$OD_figures
+mkdir -p $pl_figures
+OD_params='params'
+pl_params=$pl_combined'/'$OD_params
+mkdir -p $pl_params
 #posteriors
 OD_posteriors=str('posteriors')
-pl_posteriors=pl_combined / OD_posteriors
-pl_posteriors.mkdir(parents=True, exist_ok=True)
+pl_posteriors=$pl_combined'/'$OD_posteriors
+mkdir -p $pl_posteriors
 #
 #######################
 #Setup run 
 # jobid will unique for each tids run in the set 
 cd $OD_base
-mkdir $OD_base/$JOBID
+mkdir $OD_base'/'$JOBID
 cd $OD_base/$JOBID
 git clone -b master https://github.com/dtalmy/growth_curves
 cd $OD_base/$JOBID/growth_curves/src 
