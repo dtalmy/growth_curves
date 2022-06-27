@@ -20,6 +20,8 @@ def main(VALver):
     dest_file= 'Sub_TIDS'+str(VALver)+'_NG.sh'
     print(dest_file)
     print('\n')
+    ####
+    # OD_base is where the output will be written
     OD_base=pathlib.Path('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves/')
     # The helper functions have hard coded relative paths. It expects to be in scripts
     os.chdir(OD_base / 'scripts')
