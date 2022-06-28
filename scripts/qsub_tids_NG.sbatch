@@ -47,11 +47,15 @@ mkdir -p $pl_posteriors
 #
 #######################
 #Setup run 
-# jobid will unique for each tids run in the set 
+# jobid will be unique for each tids run in the set 
 cd $OD_base
 mkdir $OD_base'/'$JOBID
 cd $OD_base/$JOBID
 git clone -b master https://github.com/dtalmy/growth_curves
+###
+# if for some reson you want to copy a dir instead of get it from github
+# Model_Dir='/lustre/isaac/proj/UTK0105/GrowthCurves/Test/growth_curves'
+# cp -r $$Model_Dir $OD_base/$JOBID
 cd $OD_base/$JOBID/growth_curves/src 
 #
 #run model
