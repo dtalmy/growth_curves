@@ -41,7 +41,7 @@ OD_params='params'
 pl_params=$pl_combined'/'$OD_params
 mkdir -p $pl_params
 #posteriors
-OD_posteriors=str('posteriors')
+OD_posteriors='posteriors'
 pl_posteriors=$pl_combined'/'$OD_posteriors
 mkdir -p $pl_posteriors
 #
