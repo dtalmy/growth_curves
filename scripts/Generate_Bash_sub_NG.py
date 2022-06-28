@@ -20,6 +20,7 @@ def main(VALver):
     # Create file name
     #
     dest_file= 'Sub_TIDS'+str(VALver)+'_NG.sh'
+    PD_cwd=pathlib.Path.cwd()
     print(dest_file)
     print('\n')
     ####
@@ -30,12 +31,11 @@ def main(VALver):
     # on linux terminal date -d @$epochtime convert back to date
     # converting to int drop microseconds without floor
     epochtime= str(int(time.time()))
-    basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/growth_curves_')+epochtime
+    basepath=str('/lustre/isaac/proj/UTK0105/GrowthCurves/RunTIDS_')+epochtime
     #
     OD_base=pathlib.Path(basepath)
     OD_base.mkdir(parents=True, exist_ok=True)
     # The helper functions have hard coded relative paths. It expects to be in scripts
-    os.chdir(OD_base / 'scripts')
     OD_subout=str('combined')
     pl_combined=OD_base / OD_subout
     pl_combined.mkdir(parents=True, exist_ok=True)
@@ -51,9 +51,9 @@ def main(VALver):
     pl_posteriors.mkdir(parents=True, exist_ok=True)
     #
     #
-    filename=str('Dsum_LineSum.png')
+    #filename=str('Dsum_LineSum.png')
     
-    OF_dest=OD_base /'scripts'/str(dest_file)
+    OF_dest=PD_cwd /str(dest_file)
     print('Out dir set to: ' + OD_base.as_posix(), file = sys.stdout )
     print('Out file script: ' + OF_dest.as_posix(), file = sys.stdout )
     
@@ -93,6 +93,7 @@ def main(VALver):
     
     result=subprocess.run(["ls", "-l",dest_file], capture_output=True, text=True)    
     print(result.stdout)
+    
 
 if __name__ == "__main__":
     
